@@ -45,6 +45,16 @@ def test_default_data_is_used(monkeypatch, xplane_path, custom_file_path, defaul
     assert _get_file_path(xplane_path, airport_icao) == default_file_path
 
 
-def test_there_are_437_lines():
-    cifp = Cifp(file_path='LEBB.dat')
+@pytest.fixture()
+def cifp():
+    return Cifp(file_path='LEBB.dat')
+
+
+def test_there_are_437_lines(cifp):
     assert len(cifp.raw_lines) == 437
+
+
+def test_get_star_names(cifp):
+    assert cifp.star_names == set(['CEGA1K', 'CEGA1Q', 'CEGA2T', 'DGO1L', 'DGO1Q', 'DGO1T', 'DGO1Z', 'DGO2X', 'DOSU1T',
+                               'DOSU1Z', 'DOSU2K', 'DOSU2Q', 'MAPA1K', 'MAPA1Q', 'MAPA1T', 'MAPA1Z', 'SNR2K', 'SNR2Q',
+                               'SNR2T', 'SNR2Z'])
