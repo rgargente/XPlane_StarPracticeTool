@@ -18,6 +18,7 @@ class Cifp:
         """
         self.raw_lines = []
         self.star_names = set()
+        self.stars = {}
 
         if not file_path:
             file_path = _get_file_path(xplane_path, airport_icao)
@@ -25,9 +26,35 @@ class Cifp:
         f = open(file_path)
         for l in f:
             self.raw_lines.append(l)
-            """
-            STAR:010,2,CEGA1K,RW30,CEGAM,LE,E,A,E C , ,   ,IF, , , , , ,      ,    ,    ,    ,    , ,     ,     ,     , ,   ,    ,   , , , , , , , , ;
-            STAR:020,2,CEGA1K,RW30,LEKTO,LE,P,C,E   , ,   ,TF, , , , , ,      ,    ,    ,    ,    , ,     ,     ,     , ,   ,    ,   , , , , , , , , ;
-            """
+            # STAR:010, 2, MAPA1K, RW30, MAPAX, LE, E, A, E,, , IF,, , , , , , , , , , , , , , , , , , , , , , , , , ;
+            # STAR:020, 2, MAPA1K, RW30,, , , , , , , CI,, , , , , , , , 1690,, , , , , , , , , , , , , , , , ;
             if l.split(':')[0] == 'STAR':
-                self.star_names.add(l.split(',')[2])
+                line_items = l.split(',')
+                star_name = line_items[2]
+                if star_name not in self.star_names:  # new STAR
+                    self.star_names.add(star_name)
+                    star = Star(star_name)
+                    self.stars[star_name] = star
+                else:  # update star
+                    star = self.stars[star_name]
+                star._parse_raw_line(line_items)
+
+
+class Star:
+    INDEX_WAYPOINT = 4
+    INDEX_COURSE_INTERCEPT = 11
+    INDEX_CI_HEADING = 20
+
+    def __init__(self, name):
+        self.name = name
+        self.waypoints = []
+        self.init_lat = 0.0
+        self.init_lon = 0.0
+        self.init_heading = None
+
+    def _parse_raw_line(self, line_items):
+        if line_items[self.INDEX_COURSE_INTERCEPT] == 'CI':
+            self.init_heading = float(line_items[self.INDEX_CI_HEADING]) / 10
+            self.waypoints.append('INTC')
+        else:
+            self.waypoints.append(line_items[self.INDEX_WAYPOINT])
