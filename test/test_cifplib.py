@@ -1,7 +1,9 @@
 import os
+
 import pytest
 
-from cifplib import Cifp, _get_file_path
+from cifplib import _get_file_path, Cifp
+from test.mock_xplm_wrapper import MockXplmWrapper
 
 
 @pytest.fixture()
@@ -35,6 +37,13 @@ def mock_file_exists(monkeypatch, custom_file_path, default_file_path, custom_ex
     monkeypatch.setattr(os.path, 'exists', mock_exists)
 
 
+# def mock_xplm_wrapper(monkeypatch):
+#     def mock_find_navaid():
+#         return None
+#
+#     monkeypatch.setattr(xplm_wrapper, 'find_navaid', mock_find_navaid())
+
+
 def test_custom_data_folder_is_prioritised(monkeypatch, xplane_path, custom_file_path, default_file_path, airport_icao):
     mock_file_exists(monkeypatch, custom_file_path, default_file_path, True)
     assert _get_file_path(xplane_path, airport_icao) == custom_file_path
@@ -47,7 +56,7 @@ def test_default_data_is_used(monkeypatch, xplane_path, custom_file_path, defaul
 
 @pytest.fixture()
 def cifp():
-    return Cifp(file_path='LEBB.dat')
+    return Cifp(MockXplmWrapper(), 'LEBB', file_path='LEBB.dat')
 
 
 def test_there_are_437_lines(cifp):
@@ -71,9 +80,9 @@ def test_star_beginning_with_two_named_waypoints(cifp):
     # STAR:060,2,DGO2X,RW12,ROSTO,LE,P,C,EECH, ,   ,TF, , , , , ,      ,    ,    ,    ,    , ,     ,     ,     , ,   ,    ,   , , , , , , , , ;
     dgo2x = cifp.stars['DGO2X']
     assert dgo2x.waypoints == ['DGO', 'VRA', 'D251O', 'SOMAN', 'D291O', 'KALDO', 'ROSTO']
-    # assert dgo2x.init_lat == 42.453305556
-    # assert dgo2x.init_lon == -2.880694444
-    # assert dgo2x.init_heading == 003
+    assert dgo2x.init_lat == 42.453305556
+    assert dgo2x.init_lon == -2.880694444
+    assert dgo2x.init_heading == pytest.approx(003, 1)
 
 
 def test_star_with_course_intercept_as_second_waypoint(cifp):
@@ -86,6 +95,6 @@ def test_star_with_course_intercept_as_second_waypoint(cifp):
     # STAR:060, 2, MAPA1K, RW30, PAKKI, LE, P, C, EEC,, , TF,, , , , , , , , , , , , , , , , , , , , , , , , , ;
     mapa1k = cifp.stars['MAPA1K']
     assert mapa1k.waypoints == ['MAPAX', 'INTC', 'D067V', 'D092V', 'D111V', 'PAKKI']
-    # assert mapa1k.init_lat == 43.683750000
-    # assert mapa1k.init_lon == -3.044083333
-    assert mapa1k.init_heading == 169
+    assert mapa1k.init_lat == 43.683750000
+    assert mapa1k.init_lon == -3.044083333
+    assert mapa1k.init_heading == pytest.approx(169,1)
