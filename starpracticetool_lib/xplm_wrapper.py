@@ -28,13 +28,13 @@ class XplmWrapper:
         XPLMGetNavAidInfo(ref, None, out_lat, out_long, None, None, None, None, None, None)
         return out_lat[0], out_long[0]
 
-    def get_aircraft_lat_long(self):
+    def get_aircraft_lat_lon(self):
         lat_dr = XPLMFindDataRef("sim/flightmodel/position/latitude")
         lon_dr = XPLMFindDataRef("sim/flightmodel/position/longitude")
         return XPLMGetDataf(lat_dr), XPLMGetDataf(lon_dr)
 
     def get_nearest_airport(self):
-        lat, lon = get_aircraft_lat_long()
+        lat, lon = get_aircraft_lat_lon()
         ref = XPLMFindNavAid(None, None, lat, lon, None, xplm_Nav_Airport)
         if ref == XPLM_NAV_NOT_FOUND:
             return None, None

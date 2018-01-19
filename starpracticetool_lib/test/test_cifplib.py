@@ -2,8 +2,8 @@ import os
 
 import pytest
 
-from cifplib import _get_file_path, Cifp
-from test.mock_xplm_wrapper import MockXplmWrapper
+from starpracticetool_lib.cifplib import _get_file_path, Cifp
+from starpracticetool_lib.test.mock_xplm_wrapper import MockXplmWrapper
 
 
 @pytest.fixture()
@@ -35,13 +35,6 @@ def mock_file_exists(monkeypatch, custom_file_path, default_file_path, custom_ex
         return False
 
     monkeypatch.setattr(os.path, 'exists', mock_exists)
-
-
-# def mock_xplm_wrapper(monkeypatch):
-#     def mock_find_navaid():
-#         return None
-#
-#     monkeypatch.setattr(xplm_wrapper, 'find_navaid', mock_find_navaid())
 
 
 def test_custom_data_folder_is_prioritised(monkeypatch, xplane_path, custom_file_path, default_file_path, airport_icao):
@@ -97,4 +90,4 @@ def test_star_with_course_intercept_as_second_waypoint(cifp):
     assert mapa1k.waypoints == ['MAPAX', 'INTC', 'D067V', 'D092V', 'D111V', 'PAKKI']
     assert mapa1k.init_lat == 43.683750000
     assert mapa1k.init_lon == -3.044083333
-    assert mapa1k.init_heading == pytest.approx(169,1)
+    assert mapa1k.init_heading == pytest.approx(169, 1)
