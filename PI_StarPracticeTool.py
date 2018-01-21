@@ -42,7 +42,6 @@ class PythonInterface:
         self.cifp = None
 
         self.spt_window = None
-
         self.is_translucent = True
 
         self.debug_file = None
@@ -117,46 +116,32 @@ class PythonInterface:
 
         screen_w, screen_h = [], []
         XPLMGetScreenSize(screen_w, screen_h)
-        left = int(screen_w[0]) - WINDOW_W - MARGIN_W
-        top = int(screen_h[0]) - MARGIN_H
-
-        right = left + WINDOW_W
-        bottom = top - WINDOW_H
+        left_window = int(screen_w[0]) - WINDOW_W - MARGIN_W
+        top_window = int(screen_h[0]) - MARGIN_H
+        right_window = left_window + WINDOW_W
+        bottom_window = top_window - WINDOW_H
 
         # Create the Main Widget window
         # XPCreateWidget(inLeft, inTop, inRight, inBottom,
         #                inVisible, inDescriptor, inIsRoot,
         #                XPWidgetID inContainer, XPWidgetClass inClass);
-        self.spt_window = XPCreateWidget(left, top, right, bottom,
+        self.spt_window = XPCreateWidget(left_window, top_window, right_window, bottom_window,
                                          1, self.Name, 1, 0, xpWidgetClass_MainWindow)
         XPSetWidgetProperty(self.spt_window, xpProperty_MainWindowHasCloseBoxes, 1)
 
-        row_h, spx, spy = 20, 15, 20
-        ww1, ww2, ww3, ww4, ww5, ww6, ww7 = 10, 85, 30, 40, 60, 65, 30
-
+        row_h = 20
         padding = 5
-        left_col_1 = left + padding
+
+        left_col_1 = left_window + padding
         right_col_1 = left_col_1 + 50
         left_col_2 = right_col_1 + padding
         right_col_2 = left_col_2 + 50
         left_col_3 = right_col_2 + padding
         right_col_3 = left_col_3 + 50
 
-        left_col_4 = left + 170
-        right_col_4 = left_col_4 + 50
-        left_col_5 = right_col_4 + padding
-        right_col_5 = left_col_5 + 50
-        left_col_6 = right_col_5 + padding
-        right_col_6 = left_col_6 + 50
-
-        # xx2 = left_col_1 + ww1 + spx
-        # xx3 = xx2 + ww2 + spx
-        # xx4 = xx3 + ww3 + spx
-        # xx5 = xx4 + ww4 + spx
-        # xx6 = xx5 + ww5 + spx
 
         # Airport ICAO
-        top_row = top - 22
+        top_row = top_window - 22
         self.icao_caption = XPCreateWidget(left_col_1, top_row, left_col_1 + 50, top_row - row_h,
                                            1, "Airport ICAO", 0, self.spt_window, xpWidgetClass_Caption)
         top_row -= row_h
@@ -179,67 +164,44 @@ class PythonInterface:
         self.star_next_btn = XPCreateWidget(left_col_3, top_row, right_col_3, top_row - row_h,
                                             1, "Next", 0, self.spt_window, xpWidgetClass_Button)
 
-        top_row -= spy
-
         # Message textbox and clear button
-        self.WarnMsg = XPCreateWidget(left_col_1, top_row, right - 60, top_row - row_h,
-                                      1, "Welcome to Simple Warp", 0, self.spt_window, xpWidgetClass_Caption)
-        self.BtnWarn = XPCreateWidget(right - 50, top_row, right - 5, top_row - row_h,
-                                      1, "Clear", 0, self.spt_window, xpWidgetClass_Button)
-        XPSetWidgetProperty(self.BtnWarn, xpProperty_ButtonType, xpPushButton)
-        top_row -= spy
-        top_row -= int(spy / 2)
+        top_row -= row_h + padding
+        self.message_caption = XPCreateWidget(left_col_1, top_row, right_window - padding, top_row - row_h,
+                                              1, "", 0, self.spt_window, xpWidgetClass_Caption)
 
-        self.WrpFix = XPCreateWidget(left_col_1, top_row, left_col_1 + 40, top_row - row_h, 1, "", 0, self.spt_window,
-                                     xpWidgetClass_TextField)
-        self.BtnFind = XPCreateWidget(left_col_1 + 45, top_row, left_col_1 + 85, top_row - row_h, 1, "Find", 0,
-                                      self.spt_window,
-                                      xpWidgetClass_Button)
-        self.BtnNext = XPCreateWidget(left_col_1 + 90, top_row, left_col_1 + 130, top_row - row_h, 1, "Next", 0,
-                                      self.spt_window,
-                                      xpWidgetClass_Button)
-        self.WrpLb0 = XPCreateWidget(left_col_1 + 135, top_row, left_col_1 + 250, top_row - row_h, 1,
-                                     "Navaid ID (empty for FMS)",
-                                     0,
-                                     self.spt_window, xpWidgetClass_Caption)
-        self.BtnWarp = XPCreateWidget(right - 50, top_row, right - 5, top_row - row_h, 1, "!Warp!", 0,
-                                      self.spt_window,
-                                      xpWidgetClass_Button)
-        XPSetWidgetProperty(self.BtnFind, xpProperty_ButtonType, xpPushButton)
-        XPSetWidgetProperty(self.BtnNext, xpProperty_ButtonType, xpPushButton)
-        XPSetWidgetProperty(self.BtnWarp, xpProperty_ButtonType, xpPushButton)
-        top_row -= spy
-
-        self.WrpDst = XPCreateWidget(left_col_1, top_row, left_col_1 + 40, top_row - row_h, 1, "", 0, self.spt_window,
-                                     xpWidgetClass_TextField)
-        self.WrpLb1 = XPCreateWidget(left_col_1 + 45, top_row, left_col_1 + 250, top_row - row_h, 1,
-                                     "Warp as close as ... (min=1nm, default=10nm)", 0, self.spt_window,
-                                     xpWidgetClass_Caption)
-        XPSetWidgetDescriptor(self.WrpDst, str(self.warp_Dst))
-
-        top_row -= spy
-        self.Pref1Btn = XPCreateWidget(left_col_1 + 30, top_row, left_col_1 + 40, top_row - row_h, 1, "", 0,
-                                       self.spt_window,
-                                       xpWidgetClass_Button)
-        self.Pref1Lbl = XPCreateWidget(left_col_1 + 45, top_row, left_col_1 + 250, top_row - row_h, 1,
-                                       "Translucent window", 0,
-                                       self.spt_window,
-                                       xpWidgetClass_Caption)
-        XPSetWidgetProperty(self.Pref1Btn, xpProperty_ButtonType, xpRadioButton)
-        XPSetWidgetProperty(self.Pref1Btn, xpProperty_ButtonBehavior, xpButtonBehaviorCheckBox)
-        XPSetWidgetProperty(self.Pref1Btn, xpProperty_ButtonState, self.Translucent)
-        XPSetWidgetProperty(self.Pref1Btn, xpProperty_Enabled, 1)
-
-        top_row -= spy
-        self.go_btn = XPCreateWidget(left_col_1, top_row, right - padding, top_row - row_h,
+        # GO! button
+        top_row -= row_h
+        self.go_btn = XPCreateWidget(left_col_1, top_row, right_window - padding, top_row - row_h,
                                      1, "GO!", 0, self.spt_window, xpWidgetClass_Button)
 
         # Register the widget handler
-        self.SWWindowHandlerCB = self.SWWindowHandler
-        XPAddWidgetCallback(self, self.spt_window, self.SWWindowHandlerCB)
-        self.SetTranslucency()
+        self.window_handler_cb = self.window_handler
+        XPAddWidgetCallback(self, self.spt_window, self.window_handler_cb)
 
+        # Translucent window
+        top_row -= row_h
+        x_pos = left_window + 210
+        self.translucent_button = XPCreateWidget(x_pos, top_row, x_pos + 5, top_row - row_h,
+                                                 1, "", 0, self.spt_window, xpWidgetClass_Button)
+        self.translucent_caption = XPCreateWidget(x_pos + 15, top_row, right_window, top_row - row_h + 2,
+                                                  1, "Translucent window", 0, self.spt_window, xpWidgetClass_Caption)
+
+        XPSetWidgetProperty(self.translucent_button, xpProperty_ButtonType, xpRadioButton)
+        XPSetWidgetProperty(self.translucent_button, xpProperty_ButtonBehavior, xpButtonBehaviorCheckBox)
+        XPSetWidgetProperty(self.translucent_button, xpProperty_ButtonState, self.is_translucent)
+
+        self.set_translucency()
         self.init_data()
+
+    def set_translucency(self):
+        if self.is_translucent:
+            XPSetWidgetProperty(self.spt_window, xpProperty_MainWindowType, xpMainWindowStyle_Translucent)
+        else:
+            XPSetWidgetProperty(self.spt_window, xpProperty_MainWindowType, xpMainWindowStyle_MainWindow)
+        XPSetWidgetProperty(self.icao_caption, xpProperty_CaptionLit, self.is_translucent)
+        XPSetWidgetProperty(self.star_caption, xpProperty_CaptionLit, self.is_translucent)
+        XPSetWidgetProperty(self.message_caption, xpProperty_CaptionLit, self.is_translucent)
+        XPSetWidgetProperty(self.translucent_caption, xpProperty_CaptionLit, self.is_translucent)
 
     def init_data(self):
         self.debug_print("InitData")
@@ -249,78 +211,50 @@ class PythonInterface:
         self.debug_print("XP Path: {}".format(XPLMGetSystemPath()))
         self.cifp = Cifp(self.xplm, airport_icao, XPLMGetSystemPath())
         XPSetWidgetDescriptor(self.star_tf, list(self.cifp.star_names)[0])
+        self.print_selected_star()
 
-    def SWWindowHandler(self, inMessage, inWidget, inParam1, inParam2):
+    def window_handler(self, message, widget, param1, param2):
         # Close button will only hide window
-        if inMessage == xpMessage_CloseButtonPushed:
+        if message == xpMessage_CloseButtonPushed:
             if self.spt_window:
                 XPHideWidget(self.spt_window)
             return 1
 
         # Handle all button pushes
-        if inMessage == xpMsg_PushButtonPressed:
-            if inParam1 == self.BtnWarp:
-                self.WarpAircraft()
-                return 1
-            if inParam1 == self.BtnWarn:
-                self.CmdClearWarning()
-                return 1
-            if inParam1 == self.BtnFind:
-                self.CmdFindAid()
-                return 1
-            if inParam1 == self.BtnNext:
-                self.CmdNextAid()
-                return 1
-            if inParam1 == self.go_btn:
+        if message == xpMsg_PushButtonPressed:
+            if param1 == self.go_btn:
                 self.go()
                 return 1
 
-        elif inMessage == xpMsg_ButtonStateChanged:
-            if inParam1 == self.Pref1Btn:
-                self.Translucent = bool(XPGetWidgetProperty(self.Pref1Btn, xpProperty_ButtonState, None))
-                self.SetTranslucency()
+        elif message == xpMsg_ButtonStateChanged:
+            if param1 == self.translucent_button:
+                self.is_translucent = bool(XPGetWidgetProperty(self.translucent_button, xpProperty_ButtonState, None))
+                self.set_translucency()
                 self.SavePrefs()
                 return 1
         return 0
 
-    def SetTranslucency(self):
-        if self.Translucent:
-            XPSetWidgetProperty(self.spt_window, xpProperty_MainWindowType, xpMainWindowStyle_Translucent)
-        else:
-            XPSetWidgetProperty(self.spt_window, xpProperty_MainWindowType, xpMainWindowStyle_MainWindow)
+    def print_message(self, text):
+        XPSetWidgetDescriptor(self.message_caption, text)
 
-        XPSetWidgetProperty(self.icao_caption, xpProperty_CaptionLit, self.Translucent)
-        XPSetWidgetProperty(self.star_caption, xpProperty_CaptionLit, self.Translucent)
-        XPSetWidgetProperty(self.WarnMsg, xpProperty_CaptionLit, self.Translucent)
-        XPSetWidgetProperty(self.Pref1Lbl, xpProperty_CaptionLit, self.Translucent)
-        XPSetWidgetProperty(self.WrpLb0, xpProperty_CaptionLit, self.Translucent)
-        XPSetWidgetProperty(self.WrpLb1, xpProperty_CaptionLit, self.Translucent)
+    def print_selected_star(self):
+        out_airport_icao = []
+        XPGetWidgetDescriptor(self.icao_tf, out_airport_icao, 10)
+        out_star_name = []
+        XPGetWidgetDescriptor(self.star_tf, out_star_name, 20)
+        self.print_message("{} STAR {} selected".format(out_airport_icao[0], out_star_name[0]))
 
-    def CmdClearWarning(self):
-        XPSetWidgetDescriptor(self.WarnMsg, " ")
-        XPSetWidgetProperty(self.BtnWarn, xpProperty_Enabled, 0)
-        XPSetWidgetDescriptor(self.WrpFix, "")
-        self.findAid = 0
-        self.foundAid = False
-
-    def CmdDisplayWarning(self, text):
-        XPSetWidgetDescriptor(self.WarnMsg, text)
-        XPSetWidgetProperty(self.BtnWarn, xpProperty_Enabled, 1)
-
+    # TODO Handle this properly
     def SavePrefs(self):
         baseDir = os.path.join(XPLMGetSystemPath(), "Output", "preferences")
         filePre = os.path.join(baseDir, FILE_PRE)
         with open(filePre, "w") as fh:
             fh.write("# Simple Warp preferences" + os.linesep)
-            fh.write("Translucent {}".format(self.Translucent) + os.linesep)
-            fh.write("Warp_Dst {}".format(self.warp_Dst) + os.linesep)
+            fh.write("Translucent {}".format(self.is_translucent) + os.linesep)
 
     def LoadPrefs(self):
-        self.Translucent = True
+        self.is_translucent = True
         self.debug_file = None
-        self.warp_Dst = 10
-        # self.warp_Alt = 200
-        # self.warp_Spd = 200
 
         baseDir = os.path.join(XPLMGetSystemPath(), "Output", "preferences")
         filePre = os.path.join(baseDir, FILE_PRE)
@@ -332,12 +266,7 @@ class PythonInterface:
                     fields = line.upper().strip().split()
                     if len(fields) != 2: continue
                     if fields[0] == "TRANSLUCENT" and str(fields[1]) in ['1', 'YES', 'TRUE']:
-                        self.Translucent = True
-                    if fields[0] == "WARP_DST":
-                        try:
-                            self.warp_Dst = int(fields[1])
-                        except:
-                            pass
+                        self.is_translucent = True
 
         except:
             self.debug_print("Caught top level exception in LoadPrefs")
