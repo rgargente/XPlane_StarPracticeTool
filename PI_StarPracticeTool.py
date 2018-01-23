@@ -17,6 +17,7 @@ from XPStandardWidgets import *
 from XPWidgetDefs import *
 from XPWidgets import *
 
+import starpracticetool_lib.mathlib as mathlib
 from starpracticetool_lib.cifplib import Cifp
 from starpracticetool_lib.xplm_wrapper import XplmWrapper
 
@@ -138,7 +139,6 @@ class PythonInterface:
         right_col_2 = left_col_2 + 50
         left_col_3 = right_col_2 + padding
         right_col_3 = left_col_3 + 50
-
 
         # Airport ICAO
         top_row = top_window - 22
@@ -276,9 +276,42 @@ class PythonInterface:
     def go(self):
         star = self.cifp.stars['DGO1T']
         x, y, z = XPLMWorldToLocal(star.init_lat, star.init_lon, 3048)
+
         drx = XPLMFindDataRef("sim/flightmodel/position/local_x")
         dry = XPLMFindDataRef("sim/flightmodel/position/local_y")
         drz = XPLMFindDataRef("sim/flightmodel/position/local_z")
         XPLMSetDatad(drx, x)
         XPLMSetDatad(dry, y)
         XPLMSetDatad(drz, z)
+
+        # Stop the flight model
+        # dr_override = XPLMFindDataRef("sim/operation/override/override_planepath")
+        # override_values = [1]
+        # XPLMSetDatavi(dr_override, override_values, 0, 1)
+
+        # Set heading
+        # dr_heading = XPLMFindDataRef("sim/flightmodel/position/magpsi")
+        # XPLMSetDataf(dr_heading, 90)
+
+        # Set q
+        q = mathlib.hpr_to_quaternion(90, 0, 0)
+        dr_q = XPLMFindDataRef("sim/flightmodel/position/q")
+        XPLMSetDatavf(dr_q, q, 0, 4)
+
+        x, y, z = mathlib.heading_and_speed_to_xyz_vector(90, mathlib.knots_to_m_sec(120))
+        dr_vx = XPLMFindDataRef("sim/flightmodel/position/local_vx")
+        dr_vy = XPLMFindDataRef("sim/flightmodel/position/local_vy")
+        dr_vz = XPLMFindDataRef("sim/flightmodel/position/local_vz")
+        XPLMSetDataf(dr_vx, x)
+        XPLMSetDataf(dr_vy, y)
+        XPLMSetDataf(dr_vz, z)
+
+        # # Set speed
+        # dr_speed = XPLMFindDataRef("sim/flightmodel/position/indicated_airspeed")
+        # XPLMSetDataf(dr_speed, 120)
+
+
+
+        # Resume the flight model
+        # override_values = [0]
+        # XPLMSetDatavi(dr_override, override_values, 0, 1)
