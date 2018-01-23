@@ -91,3 +91,14 @@ def test_star_with_course_intercept_as_second_waypoint(cifp):
     assert mapa1k.init_lat == 43.683750000
     assert mapa1k.init_lon == -3.044083333
     assert mapa1k.init_heading == pytest.approx(169, 1)
+
+
+def test_get_prev_star(cifp):
+    assert cifp.get_prev_star('CEGA1K') == 'SNR2Z'
+    assert cifp.get_prev_star('CEGA1Q') == 'CEGA1K'
+    assert cifp.get_prev_star('SNR2Z') == 'SNR2T'
+
+def test_get_next_star(cifp):
+    assert cifp.get_next_star('CEGA1K') == 'CEGA1Q'
+    assert cifp.get_next_star('CEGA1Q') == 'CEGA2T'
+    assert cifp.get_next_star('SNR2Z') == 'CEGA1K'

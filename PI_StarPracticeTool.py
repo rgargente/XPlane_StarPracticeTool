@@ -159,6 +159,7 @@ class PythonInterface:
         top_row -= row_h
         self.star_tf = XPCreateWidget(left_col_1, top_row, right_col_1, top_row - row_h,
                                       1, "", 0, self.spt_window, xpWidgetClass_TextField)
+        XPSetWidgetProperty(self.star_tf, xpProperty_Enabled, 0)
         self.star_prev_btn = XPCreateWidget(left_col_2, top_row, right_col_2, top_row - row_h,
                                             1, "Prev", 0, self.spt_window, xpWidgetClass_Button)
         self.star_next_btn = XPCreateWidget(left_col_3, top_row, right_col_3, top_row - row_h,
@@ -174,10 +175,6 @@ class PythonInterface:
         self.go_btn = XPCreateWidget(left_col_1, top_row, right_window - padding, top_row - row_h,
                                      1, "GO!", 0, self.spt_window, xpWidgetClass_Button)
 
-        # Register the widget handler
-        self.window_handler_cb = self.window_handler
-        XPAddWidgetCallback(self, self.spt_window, self.window_handler_cb)
-
         # Translucent window
         top_row -= row_h
         x_pos = left_window + 210
@@ -191,6 +188,11 @@ class PythonInterface:
         XPSetWidgetProperty(self.translucent_button, xpProperty_ButtonState, self.is_translucent)
 
         self.set_translucency()
+
+        # Register the widget handler
+        self.window_handler_cb = self.window_handler
+        XPAddWidgetCallback(self, self.spt_window, self.window_handler_cb)
+
         self.init_data()
 
     def set_translucency(self):
@@ -210,8 +212,20 @@ class PythonInterface:
         self.debug_print("{} - {}".format(airport_icao, airport_name))
         self.debug_print("XP Path: {}".format(XPLMGetSystemPath()))
         self.cifp = Cifp(self.xplm, airport_icao, XPLMGetSystemPath())
-        XPSetWidgetDescriptor(self.star_tf, list(self.cifp.star_names)[0])
+        XPSetWidgetDescriptor(self.star_tf, self.cifp.star_names[0])
         self.print_selected_star()
+
+    @property
+    def airport_icao(self):
+        out_airport_icao = []
+        XPGetWidgetDescriptor(self.icao_tf, out_airport_icao, 10)
+        return out_airport_icao[0]
+
+    @property
+    def star_name(self):
+        out_star_name = []
+        XPGetWidgetDescriptor(self.star_tf, out_star_name, 20)
+        return out_star_name[0]
 
     def window_handler(self, message, widget, param1, param2):
         # Close button will only hide window
@@ -222,6 +236,12 @@ class PythonInterface:
 
         # Handle all button pushes
         if message == xpMsg_PushButtonPressed:
+            if param1 == self.star_prev_btn:
+                XPSetWidgetDescriptor(self.star_tf, self.cifp.get_prev_star(self.star_name))
+                self.print_selected_star()
+            if param1 == self.star_next_btn:
+                XPSetWidgetDescriptor(self.star_tf, self.cifp.get_next_star(self.star_name))
+                self.print_selected_star()
             if param1 == self.go_btn:
                 self.go()
                 return 1
@@ -238,11 +258,7 @@ class PythonInterface:
         XPSetWidgetDescriptor(self.message_caption, text)
 
     def print_selected_star(self):
-        out_airport_icao = []
-        XPGetWidgetDescriptor(self.icao_tf, out_airport_icao, 10)
-        out_star_name = []
-        XPGetWidgetDescriptor(self.star_tf, out_star_name, 20)
-        self.print_message("{} STAR {} selected".format(out_airport_icao[0], out_star_name[0]))
+        self.print_message("{} STAR {} selected".format(self.airport_icao, self.star_name))
 
     # TODO Handle this properly
     def SavePrefs(self):
@@ -309,8 +325,6 @@ class PythonInterface:
         # # Set speed
         # dr_speed = XPLMFindDataRef("sim/flightmodel/position/indicated_airspeed")
         # XPLMSetDataf(dr_speed, 120)
-
-
 
         # Resume the flight model
         # override_values = [0]

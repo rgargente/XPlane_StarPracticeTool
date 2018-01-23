@@ -58,6 +58,19 @@ class Cifp:
                     star = self.stars[star_name]
                 star._parse_raw_line(line_items)
 
+    def get_prev_star(self, star_name):
+        i = self.star_names.index(star_name)
+        if i == 0:
+            i = len(self.star_names)
+        return self.star_names[i - 1]
+
+    def get_next_star(self, star_name):
+        i = self.star_names.index(star_name)
+        if i == len(self.star_names) - 1:
+            return self.star_names[0]
+        else:
+            return self.star_names[i + 1]
+
 
 class Star:
     INDEX_WAYPOINT = 4
