@@ -34,7 +34,7 @@ class Cifp:
         :param file_path: If None xplane_path and airport_icao are used to find the right path. Otherwise they are ignored and the passed path is used.
         """
         self.raw_lines = []
-        self.star_names = set()
+        self.star_names = []
         self.stars = {}
 
         airport_lat, airport_lon = xplm_wrapper.get_waypoint_lat_lon(airport_icao, None, None)
@@ -51,7 +51,7 @@ class Cifp:
                 line_items = l.split(',')
                 star_name = line_items[2]
                 if star_name not in self.star_names:  # new STAR
-                    self.star_names.add(star_name)
+                    self.star_names.append(star_name)
                     star = Star(xplm_wrapper, star_name, airport_lat, airport_lon)
                     self.stars[star_name] = star
                 else:  # update star

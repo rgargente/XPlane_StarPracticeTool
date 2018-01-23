@@ -57,9 +57,9 @@ def test_there_are_437_lines(cifp):
 
 
 def test_get_star_names(cifp):
-    assert cifp.star_names == set(['CEGA1K', 'CEGA1Q', 'CEGA2T', 'DGO1L', 'DGO1Q', 'DGO1T', 'DGO1Z', 'DGO2X', 'DOSU1T',
-                                   'DOSU1Z', 'DOSU2K', 'DOSU2Q', 'MAPA1K', 'MAPA1Q', 'MAPA1T', 'MAPA1Z', 'SNR2K',
-                                   'SNR2Q', 'SNR2T', 'SNR2Z'])
+    assert cifp.star_names == ['CEGA1K', 'CEGA1Q', 'CEGA2T', 'DGO1L', 'DGO1Q', 'DGO1T', 'DGO1Z', 'DGO2X', 'DOSU1T',
+                               'DOSU1Z', 'DOSU2K', 'DOSU2Q', 'MAPA1K', 'MAPA1Q', 'MAPA1T', 'MAPA1Z', 'SNR2K',
+                               'SNR2Q', 'SNR2T', 'SNR2Z']
 
 
 def test_star_beginning_with_two_named_waypoints(cifp):
