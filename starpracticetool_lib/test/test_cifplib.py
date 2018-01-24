@@ -102,3 +102,8 @@ def test_get_next_star(cifp):
     assert cifp.get_next_star('CEGA1K') == 'CEGA1Q'
     assert cifp.get_next_star('CEGA1Q') == 'CEGA2T'
     assert cifp.get_next_star('SNR2Z') == 'CEGA1K'
+
+def test_non_existing_airport():
+    with pytest.raises(Exception) as e:
+        Cifp(MockXplmWrapper(), 'garbage')
+    assert "Airport not found" == e.value.message

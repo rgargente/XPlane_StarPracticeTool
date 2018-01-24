@@ -25,10 +25,12 @@ class XplmWrapper:
     def get_waypoint_lat_lon(self, id, airport_lat, airport_lon):
         ref = XPLMFindNavAid(None, id, airport_lat, airport_lon,
                              None, xplm_Nav_Airport | xplm_Nav_NDB | xplm_Nav_VOR | xplm_Nav_Fix)
-        # None, xplm_Nav_Airport)
-        out_lat, out_long = [], []
-        XPLMGetNavAidInfo(ref, None, out_lat, out_long, None, None, None, None, None, None)
-        return out_lat[0], out_long[0]
+        if ref == XPLM_NAV_NOT_FOUND:
+            return None, None
+        else:
+            out_lat, out_long = [], []
+            XPLMGetNavAidInfo(ref, None, out_lat, out_long, None, None, None, None, None, None)
+            return out_lat[0], out_long[0]
 
     def get_aircraft_lat_lon(self):
         lat_dr = XPLMFindDataRef("sim/flightmodel/position/latitude")

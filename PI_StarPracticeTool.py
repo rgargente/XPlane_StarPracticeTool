@@ -39,7 +39,7 @@ class PythonInterface:
         self.Sig = "rgargente.spt"
         self.Desc = "Set up your plane to practice IFR STAR arrivals procedures"
 
-        self.xplm = XplmWrapper()
+        self.xplm_wrapper = XplmWrapper()
         self.cifp = None
 
         self.spt_window = None
@@ -149,8 +149,8 @@ class PythonInterface:
                                       1, "", 0, self.spt_window, xpWidgetClass_TextField)
         self.search_airpot_btn = XPCreateWidget(left_col_2, top_row, right_col_2, top_row - row_h,
                                                 1, "Search", 0, self.spt_window, xpWidgetClass_Button)
-        self.search_airpot_btn = XPCreateWidget(left_col_3, top_row, right_col_3, top_row - row_h,
-                                                1, "Nearest", 0, self.spt_window, xpWidgetClass_Button)
+        self.nearest_airpot_btn = XPCreateWidget(left_col_3, top_row, right_col_3, top_row - row_h,
+                                                 1, "Nearest", 0, self.spt_window, xpWidgetClass_Button)
 
         # STAR
         top_row -= row_h
@@ -205,16 +205,6 @@ class PythonInterface:
         XPSetWidgetProperty(self.message_caption, xpProperty_CaptionLit, self.is_translucent)
         XPSetWidgetProperty(self.translucent_caption, xpProperty_CaptionLit, self.is_translucent)
 
-    def init_data(self):
-        self.debug_print("InitData")
-        airport_icao, airport_name, airport_lat, airport_lon = self.xplm.get_nearest_airport()
-        XPSetWidgetDescriptor(self.icao_tf, airport_icao)
-        self.debug_print("{} - {}".format(airport_icao, airport_name))
-        self.debug_print("XP Path: {}".format(XPLMGetSystemPath()))
-        self.cifp = Cifp(self.xplm, airport_icao, XPLMGetSystemPath())
-        XPSetWidgetDescriptor(self.star_tf, self.cifp.star_names[0])
-        self.print_selected_star()
-
     @property
     def airport_icao(self):
         out_airport_icao = []
@@ -236,6 +226,8 @@ class PythonInterface:
 
         # Handle all button pushes
         if message == xpMsg_PushButtonPressed:
+            if param1 == self.search_airpot_btn:
+                self.search_airport(self.airport_icao)
             if param1 == self.star_prev_btn:
                 XPSetWidgetDescriptor(self.star_tf, self.cifp.get_prev_star(self.star_name))
                 self.print_selected_star()
@@ -289,6 +281,22 @@ class PythonInterface:
             pass
         self.SavePrefs()
 
+    def init_data(self):
+        airport_icao, airport_name, airport_lat, airport_lon = self.xplm_wrapper.get_nearest_airport()
+        self.load_new_airport(airport_icao)
+
+    def load_new_airport(self, airport_icao):
+        XPSetWidgetDescriptor(self.icao_tf, airport_icao)
+        self.cifp = Cifp(self.xplm_wrapper, airport_icao, XPLMGetSystemPath())
+        XPSetWidgetDescriptor(self.star_tf, self.cifp.star_names[0])
+        self.print_selected_star()
+
+    def search_airport(self, airport_icao):
+        try:
+            self.load_new_airport(airport_icao)
+        except Exception as e:
+            self.print_message(str(e))
+
     def go(self):
         star = self.cifp.stars['DGO1T']
         x, y, z = XPLMWorldToLocal(star.init_lat, star.init_lon, 3048)
@@ -300,16 +308,7 @@ class PythonInterface:
         XPLMSetDatad(dry, y)
         XPLMSetDatad(drz, z)
 
-        # Stop the flight model
-        # dr_override = XPLMFindDataRef("sim/operation/override/override_planepath")
-        # override_values = [1]
-        # XPLMSetDatavi(dr_override, override_values, 0, 1)
-
-        # Set heading
-        # dr_heading = XPLMFindDataRef("sim/flightmodel/position/magpsi")
-        # XPLMSetDataf(dr_heading, 90)
-
-        # Set q
+        # Set quaternion
         q = mathlib.hpr_to_quaternion(90, 0, 0)
         dr_q = XPLMFindDataRef("sim/flightmodel/position/q")
         XPLMSetDatavf(dr_q, q, 0, 4)
@@ -321,11 +320,3 @@ class PythonInterface:
         XPLMSetDataf(dr_vx, x)
         XPLMSetDataf(dr_vy, y)
         XPLMSetDataf(dr_vz, z)
-
-        # # Set speed
-        # dr_speed = XPLMFindDataRef("sim/flightmodel/position/indicated_airspeed")
-        # XPLMSetDataf(dr_speed, 120)
-
-        # Resume the flight model
-        # override_values = [0]
-        # XPLMSetDatavi(dr_override, override_values, 0, 1)

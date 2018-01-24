@@ -38,6 +38,8 @@ class Cifp:
         self.stars = {}
 
         airport_lat, airport_lon = xplm_wrapper.get_waypoint_lat_lon(airport_icao, None, None)
+        if airport_lat is None:
+            raise Exception("Airport not found")
 
         if not file_path:
             file_path = _get_file_path(xplane_path, airport_icao)
