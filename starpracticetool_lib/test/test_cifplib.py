@@ -98,10 +98,12 @@ def test_get_prev_star(cifp):
     assert cifp.get_prev_star('CEGA1Q') == 'CEGA1K'
     assert cifp.get_prev_star('SNR2Z') == 'SNR2T'
 
+
 def test_get_next_star(cifp):
     assert cifp.get_next_star('CEGA1K') == 'CEGA1Q'
     assert cifp.get_next_star('CEGA1Q') == 'CEGA2T'
     assert cifp.get_next_star('SNR2Z') == 'CEGA1K'
+
 
 def test_non_existing_airport():
     with pytest.raises(Exception) as e:

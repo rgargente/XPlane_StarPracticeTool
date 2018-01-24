@@ -37,7 +37,7 @@ class Cifp:
         self.star_names = []
         self.stars = {}
 
-        airport_lat, airport_lon = xplm_wrapper.get_waypoint_lat_lon(airport_icao, None, None)
+        airport_lat, airport_lon = xplm_wrapper.get_airport_lat_lon(airport_icao, None, None)
         if airport_lat is None:
             raise Exception("Airport not found")
 

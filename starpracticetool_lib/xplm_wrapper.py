@@ -22,6 +22,19 @@ from XPLMDataAccess import *
 
 class XplmWrapper:
 
+    def get_airport_lat_lon(self, id, airport_lat, airport_lon):
+        ref = XPLMFindNavAid(None, id, airport_lat, airport_lon,
+                             None, xplm_Nav_Airport)
+        if ref == XPLM_NAV_NOT_FOUND:
+            return None, None
+
+        out_lat, out_long, out_id = [], [], []
+        XPLMGetNavAidInfo(ref, None, out_lat, out_long, None, None, None, out_id, None, None)
+        if out_id[0] == id:
+            return out_lat[0], out_long[0]
+        else:
+            return None, None
+
     def get_waypoint_lat_lon(self, id, airport_lat, airport_lon):
         ref = XPLMFindNavAid(None, id, airport_lat, airport_lon,
                              None, xplm_Nav_Airport | xplm_Nav_NDB | xplm_Nav_VOR | xplm_Nav_Fix)

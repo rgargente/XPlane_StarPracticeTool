@@ -145,8 +145,8 @@ class PythonInterface:
         self.icao_caption = XPCreateWidget(left_col_1, top_row, left_col_1 + 50, top_row - row_h,
                                            1, "Airport ICAO", 0, self.spt_window, xpWidgetClass_Caption)
         top_row -= row_h
-        self.icao_tf = XPCreateWidget(left_col_1, top_row, right_col_1, top_row - row_h,
-                                      1, "", 0, self.spt_window, xpWidgetClass_TextField)
+        self.airport_icao_tf = XPCreateWidget(left_col_1, top_row, right_col_1, top_row - row_h,
+                                              1, "", 0, self.spt_window, xpWidgetClass_TextField)
         self.search_airpot_btn = XPCreateWidget(left_col_2, top_row, right_col_2, top_row - row_h,
                                                 1, "Search", 0, self.spt_window, xpWidgetClass_Button)
         self.nearest_airpot_btn = XPCreateWidget(left_col_3, top_row, right_col_3, top_row - row_h,
@@ -208,7 +208,7 @@ class PythonInterface:
     @property
     def airport_icao(self):
         out_airport_icao = []
-        XPGetWidgetDescriptor(self.icao_tf, out_airport_icao, 10)
+        XPGetWidgetDescriptor(self.airport_icao_tf, out_airport_icao, 10)
         return out_airport_icao[0]
 
     @property
@@ -216,6 +216,13 @@ class PythonInterface:
         out_star_name = []
         XPGetWidgetDescriptor(self.star_tf, out_star_name, 20)
         return out_star_name[0]
+
+    def set_go_button_enabled(self, enabled=True):
+        XPSetWidgetProperty(self.go_btn, xpProperty_Enabled, enabled)
+        XPSetWidgetProperty(self.star_prev_btn, xpProperty_Enabled, enabled)
+        XPSetWidgetProperty(self.star_next_btn, xpProperty_Enabled, enabled)
+        if not enabled:
+            XPSetWidgetDescriptor(self.star_tf, "")
 
     def window_handler(self, message, widget, param1, param2):
         # Close button will only hide window
@@ -286,16 +293,24 @@ class PythonInterface:
         self.load_new_airport(airport_icao)
 
     def load_new_airport(self, airport_icao):
-        XPSetWidgetDescriptor(self.icao_tf, airport_icao)
+        XPSetWidgetDescriptor(self.airport_icao_tf, airport_icao)
         self.cifp = Cifp(self.xplm_wrapper, airport_icao, XPLMGetSystemPath())
-        XPSetWidgetDescriptor(self.star_tf, self.cifp.star_names[0])
-        self.print_selected_star()
+        if self.cifp.star_names:
+            XPSetWidgetDescriptor(self.star_tf, self.cifp.star_names[0])
+            self.print_selected_star()
+            self.set_go_button_enabled(True)
+        else:
+            self.print_message("No STARs found for {} airport".format(airport_icao))
+            self.set_go_button_enabled(False)
 
     def search_airport(self, airport_icao):
         try:
+            airport_icao = airport_icao.upper()
+            XPSetWidgetDescriptor(self.airport_icao_tf, airport_icao)
             self.load_new_airport(airport_icao)
         except Exception as e:
             self.print_message(str(e))
+            self.set_go_button_enabled(False)
 
     def go(self):
         star = self.cifp.stars['DGO1T']
