@@ -38,3 +38,6 @@ def hpr_to_quaternion(heading, pitch, roll):
 def knots_to_m_sec(kts):
     """Knots (kt) to meters/second (m/s)"""
     return kts * 0.514444
+
+def feet_to_meters(feet):
+    return feet * 0.3048

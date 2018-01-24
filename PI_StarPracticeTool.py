@@ -172,7 +172,7 @@ class PythonInterface:
         self.altitude_caption = XPCreateWidget(left_col_1, top_row, right_col_1, top_row - row_h,
                                                1, "Altitude", 0, self.spt_window, xpWidgetClass_Caption)
         self.altitude_tf = XPCreateWidget(left_col_2, top_row, right_col_2, top_row - row_h,
-                                          1, "", 0, self.spt_window, xpWidgetClass_TextField)
+                                          1, "10000", 0, self.spt_window, xpWidgetClass_TextField)
         self.altitude_units_caption = XPCreateWidget(right_col_2 + padding, top_row, right_col_2 + 20, top_row - row_h,
                                                      1, "ft", 0, self.spt_window, xpWidgetClass_Caption)
         right = left_half_window + 40
@@ -181,9 +181,9 @@ class PythonInterface:
         left = right + 2 * padding
         right = left + 40
         self.speed_tf = XPCreateWidget(left, top_row, right, top_row - row_h,
-                                       1, "", 0, self.spt_window, xpWidgetClass_TextField)
-        self.speed_units_caption =XPCreateWidget(right+padding, top_row, right + 20, top_row - row_h,
-                                       1, "kts", 0, self.spt_window, xpWidgetClass_Caption)
+                                       1, "220", 0, self.spt_window, xpWidgetClass_TextField)
+        self.speed_units_caption = XPCreateWidget(right + padding, top_row, right + 20, top_row - row_h,
+                                                  1, "kts", 0, self.spt_window, xpWidgetClass_Caption)
 
         # Message textbox and clear button
         top_row -= row_h + padding
@@ -230,16 +230,28 @@ class PythonInterface:
         XPSetWidgetProperty(self.translucent_caption, xpProperty_CaptionLit, self.is_translucent)
 
     @property
-    def airport_icao(self):
+    def selected_airport_icao(self):
         out_airport_icao = []
         XPGetWidgetDescriptor(self.airport_icao_tf, out_airport_icao, 10)
         return out_airport_icao[0]
 
     @property
-    def star_name(self):
+    def selected_star_name(self):
         out_star_name = []
         XPGetWidgetDescriptor(self.star_tf, out_star_name, 20)
         return out_star_name[0]
+
+    @property
+    def selected_altitude(self):
+        out_alt = []
+        XPGetWidgetDescriptor(self.altitude_tf, out_alt, 5)
+        return int(out_alt[0])
+
+    @property
+    def selected_speed(self):
+        out_speed = []
+        XPGetWidgetDescriptor(self.speed_tf, out_speed, 5)
+        return int(out_speed[0])
 
     def set_go_button_enabled(self, enabled=True):
         XPSetWidgetProperty(self.go_btn, xpProperty_Enabled, enabled)
@@ -258,14 +270,14 @@ class PythonInterface:
         # Handle all button pushes
         if message == xpMsg_PushButtonPressed:
             if param1 == self.search_airpot_btn:
-                self.search_airport(self.airport_icao)
+                self.search_airport(self.selected_airport_icao)
             elif param1 == self.nearest_airpot_btn:
                 self.init_data()
             elif param1 == self.star_prev_btn:
-                XPSetWidgetDescriptor(self.star_tf, self.cifp.get_prev_star(self.star_name))
+                XPSetWidgetDescriptor(self.star_tf, self.cifp.get_prev_star(self.selected_star_name))
                 self.print_selected_star()
             elif param1 == self.star_next_btn:
-                XPSetWidgetDescriptor(self.star_tf, self.cifp.get_next_star(self.star_name))
+                XPSetWidgetDescriptor(self.star_tf, self.cifp.get_next_star(self.selected_star_name))
                 self.print_selected_star()
             elif param1 == self.go_btn:
                 self.go()
@@ -283,7 +295,7 @@ class PythonInterface:
         XPSetWidgetDescriptor(self.message_caption, text)
 
     def print_selected_star(self):
-        self.print_message("{} STAR {} selected".format(self.airport_icao, self.star_name))
+        self.print_message("{} STAR {} selected".format(self.selected_airport_icao, self.selected_star_name))
 
     # TODO Handle this properly
     def SavePrefs(self):
@@ -339,8 +351,8 @@ class PythonInterface:
             self.set_go_button_enabled(False)
 
     def go(self):
-        star = self.cifp.stars[self.star_name]
-        x, y, z = XPLMWorldToLocal(star.init_lat, star.init_lon, 3048)
+        star = self.cifp.stars[self.selected_star_name]
+        x, y, z = XPLMWorldToLocal(star.init_lat, star.init_lon, mathlib.feet_to_meters(self.selected_altitude))
 
         drx = XPLMFindDataRef("sim/flightmodel/position/local_x")
         dry = XPLMFindDataRef("sim/flightmodel/position/local_y")
@@ -354,7 +366,8 @@ class PythonInterface:
         dr_q = XPLMFindDataRef("sim/flightmodel/position/q")
         XPLMSetDatavf(dr_q, q, 0, 4)
 
-        x, y, z = mathlib.heading_and_speed_to_xyz_vector(star.init_heading, mathlib.knots_to_m_sec(120))
+        x, y, z = mathlib.heading_and_speed_to_xyz_vector(star.init_heading,
+                                                          mathlib.knots_to_m_sec(self.selected_speed))
         dr_vx = XPLMFindDataRef("sim/flightmodel/position/local_vx")
         dr_vy = XPLMFindDataRef("sim/flightmodel/position/local_vy")
         dr_vz = XPLMFindDataRef("sim/flightmodel/position/local_vz")
