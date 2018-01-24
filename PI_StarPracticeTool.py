@@ -29,7 +29,7 @@ SHOW_SPT_PANEL_MENUITEMREF = 1
 MARGIN_W = 30
 MARGIN_H = 30
 WINDOW_W = 350
-WINDOW_H = 220
+WINDOW_H = 190
 
 
 # noinspection PyUnresolvedReferences
@@ -140,6 +140,8 @@ class PythonInterface:
         left_col_3 = right_col_2 + padding
         right_col_3 = left_col_3 + 50
 
+        left_half_window = left_window + WINDOW_W / 2
+
         # Airport ICAO
         top_row = top_window - 22
         self.icao_caption = XPCreateWidget(left_col_1, top_row, left_col_1 + 50, top_row - row_h,
@@ -164,6 +166,24 @@ class PythonInterface:
                                             1, "Prev", 0, self.spt_window, xpWidgetClass_Button)
         self.star_next_btn = XPCreateWidget(left_col_3, top_row, right_col_3, top_row - row_h,
                                             1, "Next", 0, self.spt_window, xpWidgetClass_Button)
+
+        # Altitude and Speed
+        top_row -= row_h
+        self.altitude_caption = XPCreateWidget(left_col_1, top_row, right_col_1, top_row - row_h,
+                                               1, "Altitude", 0, self.spt_window, xpWidgetClass_Caption)
+        self.altitude_tf = XPCreateWidget(left_col_2, top_row, right_col_2, top_row - row_h,
+                                          1, "", 0, self.spt_window, xpWidgetClass_TextField)
+        self.altitude_units_caption = XPCreateWidget(right_col_2 + padding, top_row, right_col_2 + 20, top_row - row_h,
+                                                     1, "ft", 0, self.spt_window, xpWidgetClass_Caption)
+        right = left_half_window + 40
+        self.speed_caption = XPCreateWidget(left_half_window, top_row, right, top_row - row_h,
+                                            1, "Speed", 0, self.spt_window, xpWidgetClass_Caption)
+        left = right + 2 * padding
+        right = left + 40
+        self.speed_tf = XPCreateWidget(left, top_row, right, top_row - row_h,
+                                       1, "", 0, self.spt_window, xpWidgetClass_TextField)
+        self.speed_units_caption =XPCreateWidget(right+padding, top_row, right + 20, top_row - row_h,
+                                       1, "kts", 0, self.spt_window, xpWidgetClass_Caption)
 
         # Message textbox and clear button
         top_row -= row_h + padding
@@ -202,6 +222,10 @@ class PythonInterface:
             XPSetWidgetProperty(self.spt_window, xpProperty_MainWindowType, xpMainWindowStyle_MainWindow)
         XPSetWidgetProperty(self.icao_caption, xpProperty_CaptionLit, self.is_translucent)
         XPSetWidgetProperty(self.star_caption, xpProperty_CaptionLit, self.is_translucent)
+        XPSetWidgetProperty(self.altitude_caption, xpProperty_CaptionLit, self.is_translucent)
+        XPSetWidgetProperty(self.altitude_units_caption, xpProperty_CaptionLit, self.is_translucent)
+        XPSetWidgetProperty(self.speed_caption, xpProperty_CaptionLit, self.is_translucent)
+        XPSetWidgetProperty(self.speed_units_caption, xpProperty_CaptionLit, self.is_translucent)
         XPSetWidgetProperty(self.message_caption, xpProperty_CaptionLit, self.is_translucent)
         XPSetWidgetProperty(self.translucent_caption, xpProperty_CaptionLit, self.is_translucent)
 
@@ -315,7 +339,7 @@ class PythonInterface:
             self.set_go_button_enabled(False)
 
     def go(self):
-        star = self.cifp.stars['DGO1T']
+        star = self.cifp.stars[self.star_name]
         x, y, z = XPLMWorldToLocal(star.init_lat, star.init_lon, 3048)
 
         drx = XPLMFindDataRef("sim/flightmodel/position/local_x")
@@ -326,11 +350,11 @@ class PythonInterface:
         XPLMSetDatad(drz, z)
 
         # Set quaternion
-        q = mathlib.hpr_to_quaternion(90, 0, 0)
+        q = mathlib.hpr_to_quaternion(star.init_heading, 0, 0)
         dr_q = XPLMFindDataRef("sim/flightmodel/position/q")
         XPLMSetDatavf(dr_q, q, 0, 4)
 
-        x, y, z = mathlib.heading_and_speed_to_xyz_vector(90, mathlib.knots_to_m_sec(120))
+        x, y, z = mathlib.heading_and_speed_to_xyz_vector(star.init_heading, mathlib.knots_to_m_sec(120))
         dr_vx = XPLMFindDataRef("sim/flightmodel/position/local_vx")
         dr_vy = XPLMFindDataRef("sim/flightmodel/position/local_vy")
         dr_vz = XPLMFindDataRef("sim/flightmodel/position/local_vz")
