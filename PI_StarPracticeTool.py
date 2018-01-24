@@ -235,13 +235,15 @@ class PythonInterface:
         if message == xpMsg_PushButtonPressed:
             if param1 == self.search_airpot_btn:
                 self.search_airport(self.airport_icao)
-            if param1 == self.star_prev_btn:
+            elif param1 == self.nearest_airpot_btn:
+                self.init_data()
+            elif param1 == self.star_prev_btn:
                 XPSetWidgetDescriptor(self.star_tf, self.cifp.get_prev_star(self.star_name))
                 self.print_selected_star()
-            if param1 == self.star_next_btn:
+            elif param1 == self.star_next_btn:
                 XPSetWidgetDescriptor(self.star_tf, self.cifp.get_next_star(self.star_name))
                 self.print_selected_star()
-            if param1 == self.go_btn:
+            elif param1 == self.go_btn:
                 self.go()
                 return 1
 
