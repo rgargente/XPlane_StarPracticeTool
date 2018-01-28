@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 VERSION = "0.9.0"
 
 import os
+import json
 from datetime import datetime
 
 from PythonScriptMessaging import *
@@ -41,7 +42,6 @@ from starpracticetool_lib.cifplib import Cifp
 from starpracticetool_lib.xplm_wrapper import XplmWrapper
 
 FILE_LOG = "STAR_Practice_Tool.log"
-FILE_PRE = "STAR_Practice_Tool.prf"
 
 SHOW_SPT_PANEL_MENUITEMREF = 1
 
@@ -62,13 +62,12 @@ class PythonInterface:
         self.cifp = None
 
         self.spt_window = None
-        self.is_translucent = True
 
         self.debug_file = None
         self.is_debugging_to_file = False
 
         # Load preferences
-        self.LoadPrefs()
+        self.preferences = Preferences.load()
 
         # Debug
         self.init_debugging()
@@ -92,7 +91,8 @@ class PythonInterface:
         if self.debug_file is not None:
             self.debug_file.close()
 
-        XPLMDestroyMenu(self, self.main_menu)
+        if self.main_menu:
+            XPLMDestroyMenu(self, self.main_menu)
         XPLMRemoveMenuItem(XPLMFindPluginsMenu(), self.spt_menu_index)
 
     def XPluginEnable(self):
@@ -103,6 +103,10 @@ class PythonInterface:
 
     def XPluginReceiveMessage(self, inFromWho, inMessage, inParam):
         pass
+
+    def save_prefs(self):
+        self.preferences.speed = self.selected_speed
+        self.preferences.save()
 
     def debug_print(self, Msg):
         message = str(datetime.now()) + " " + self.Name + ": " + Msg
@@ -200,7 +204,7 @@ class PythonInterface:
         left = right + 2 * padding
         right = left + 40
         self.speed_tf = XPCreateWidget(left, top_row, right, top_row - row_h,
-                                       1, "220", 0, self.spt_window, xpWidgetClass_TextField)
+                                       1, str(self.preferences.speed), 0, self.spt_window, xpWidgetClass_TextField)
         self.speed_units_caption = XPCreateWidget(right + padding, top_row, right + 20, top_row - row_h,
                                                   1, "kts", 0, self.spt_window, xpWidgetClass_Caption)
 
@@ -224,7 +228,7 @@ class PythonInterface:
 
         XPSetWidgetProperty(self.translucent_button, xpProperty_ButtonType, xpRadioButton)
         XPSetWidgetProperty(self.translucent_button, xpProperty_ButtonBehavior, xpButtonBehaviorCheckBox)
-        XPSetWidgetProperty(self.translucent_button, xpProperty_ButtonState, self.is_translucent)
+        XPSetWidgetProperty(self.translucent_button, xpProperty_ButtonState, self.preferences.is_translucent)
 
         self.set_translucency()
 
@@ -235,18 +239,18 @@ class PythonInterface:
         self.init_data()
 
     def set_translucency(self):
-        if self.is_translucent:
+        if self.preferences.is_translucent:
             XPSetWidgetProperty(self.spt_window, xpProperty_MainWindowType, xpMainWindowStyle_Translucent)
         else:
             XPSetWidgetProperty(self.spt_window, xpProperty_MainWindowType, xpMainWindowStyle_MainWindow)
-        XPSetWidgetProperty(self.icao_caption, xpProperty_CaptionLit, self.is_translucent)
-        XPSetWidgetProperty(self.star_caption, xpProperty_CaptionLit, self.is_translucent)
-        XPSetWidgetProperty(self.altitude_caption, xpProperty_CaptionLit, self.is_translucent)
-        XPSetWidgetProperty(self.altitude_units_caption, xpProperty_CaptionLit, self.is_translucent)
-        XPSetWidgetProperty(self.speed_caption, xpProperty_CaptionLit, self.is_translucent)
-        XPSetWidgetProperty(self.speed_units_caption, xpProperty_CaptionLit, self.is_translucent)
-        XPSetWidgetProperty(self.message_caption, xpProperty_CaptionLit, self.is_translucent)
-        XPSetWidgetProperty(self.translucent_caption, xpProperty_CaptionLit, self.is_translucent)
+        XPSetWidgetProperty(self.icao_caption, xpProperty_CaptionLit, self.preferences.is_translucent)
+        XPSetWidgetProperty(self.star_caption, xpProperty_CaptionLit, self.preferences.is_translucent)
+        XPSetWidgetProperty(self.altitude_caption, xpProperty_CaptionLit, self.preferences.is_translucent)
+        XPSetWidgetProperty(self.altitude_units_caption, xpProperty_CaptionLit, self.preferences.is_translucent)
+        XPSetWidgetProperty(self.speed_caption, xpProperty_CaptionLit, self.preferences.is_translucent)
+        XPSetWidgetProperty(self.speed_units_caption, xpProperty_CaptionLit, self.preferences.is_translucent)
+        XPSetWidgetProperty(self.message_caption, xpProperty_CaptionLit, self.preferences.is_translucent)
+        XPSetWidgetProperty(self.translucent_caption, xpProperty_CaptionLit, self.preferences.is_translucent)
 
     @property
     def selected_airport_icao(self):
@@ -283,6 +287,7 @@ class PythonInterface:
         # Close button will only hide window
         if message == xpMessage_CloseButtonPushed:
             if self.spt_window:
+                self.save_prefs()
                 XPHideWidget(self.spt_window)
             return 1
 
@@ -304,9 +309,10 @@ class PythonInterface:
 
         elif message == xpMsg_ButtonStateChanged:
             if param1 == self.translucent_button:
-                self.is_translucent = bool(XPGetWidgetProperty(self.translucent_button, xpProperty_ButtonState, None))
+                self.preferences.is_translucent = bool(
+                    XPGetWidgetProperty(self.translucent_button, xpProperty_ButtonState, None))
                 self.set_translucency()
-                self.SavePrefs()
+                self.save_prefs()
                 return 1
         return 0
 
@@ -315,35 +321,6 @@ class PythonInterface:
 
     def print_selected_star(self):
         self.print_message("{} STAR {} selected".format(self.selected_airport_icao, self.selected_star_name))
-
-    # TODO Handle this properly
-    def SavePrefs(self):
-        baseDir = os.path.join(XPLMGetSystemPath(), "Output", "preferences")
-        filePre = os.path.join(baseDir, FILE_PRE)
-        with open(filePre, "w") as fh:
-            fh.write("# Simple Warp preferences" + os.linesep)
-            fh.write("Translucent {}".format(self.is_translucent) + os.linesep)
-
-    def LoadPrefs(self):
-        self.is_translucent = True
-        self.debug_file = None
-
-        baseDir = os.path.join(XPLMGetSystemPath(), "Output", "preferences")
-        filePre = os.path.join(baseDir, FILE_PRE)
-        try:
-            with open(filePre, "rU") as fh:
-                lines = fh.read().splitlines()
-                self.debug_print("Reading preferences from Output/preferences/{}".format(FILE_PRE))
-                for line in lines:
-                    fields = line.upper().strip().split()
-                    if len(fields) != 2: continue
-                    if fields[0] == "TRANSLUCENT" and str(fields[1]) in ['1', 'YES', 'TRUE']:
-                        self.is_translucent = True
-
-        except:
-            self.debug_print("Caught top level exception in LoadPrefs")
-            pass
-        self.SavePrefs()
 
     def init_data(self):
         airport_icao, airport_name, airport_lat, airport_lon = self.xplm_wrapper.get_nearest_airport()
@@ -370,6 +347,8 @@ class PythonInterface:
             self.set_go_button_enabled(False)
 
     def go(self):
+        self.save_prefs()
+
         star = self.cifp.stars[self.selected_star_name]
         x, y, z = XPLMWorldToLocal(star.init_lat, star.init_lon, mathlib.feet_to_meters(self.selected_altitude))
 
@@ -393,3 +372,25 @@ class PythonInterface:
         XPLMSetDataf(dr_vx, x)
         XPLMSetDataf(dr_vy, y)
         XPLMSetDataf(dr_vz, z)
+
+
+class Preferences:
+    file_path = os.path.join(XPLMGetSystemPath(), "Output", "preferences", "STAR_Practice_Tool.json")
+
+    def __init__(self):
+        self.is_translucent = True
+        self.speed = 200
+
+    def save(self):
+        with open(Preferences.file_path, 'w') as f:
+            json.dump(self.__dict__, f)
+
+    @staticmethod
+    def load():
+        p = Preferences()
+        if os.path.exists(Preferences.file_path):
+            with open(Preferences.file_path, 'r') as f:
+                j = json.load(f)
+                p.is_translucent = j['is_translucent']
+                p.speed = j['speed']
+        return p
