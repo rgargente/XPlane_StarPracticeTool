@@ -46,6 +46,7 @@ def get_heading_between_two_lat_lon(lat1, lon1, lat2, lon2):
 
 
 class Cifp:
+    APT_NOT_FOUND_EXC = "Airport not found"
 
     def __init__(self, xplm_wrapper, airport_icao, xplane_path=None, file_path=None):
         """
@@ -58,10 +59,13 @@ class Cifp:
 
         airport_lat, airport_lon = xplm_wrapper.get_airport_lat_lon(airport_icao, None, None)
         if airport_lat is None:
-            raise Exception("Airport not found")
+            raise Exception(Cifp.APT_NOT_FOUND_EXC)
 
         if not file_path:
             file_path = _get_file_path(xplane_path, airport_icao)
+
+        if not os.path.exists(file_path):
+            raise Exception(Cifp.APT_NOT_FOUND_EXC)
 
         f = open(file_path)
         for l in f:

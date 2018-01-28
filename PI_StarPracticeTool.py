@@ -328,13 +328,17 @@ class PythonInterface:
 
     def load_new_airport(self, airport_icao):
         XPSetWidgetDescriptor(self.airport_icao_tf, airport_icao)
-        self.cifp = Cifp(self.xplm_wrapper, airport_icao, XPLMGetSystemPath())
-        if self.cifp.star_names:
-            XPSetWidgetDescriptor(self.star_tf, self.cifp.star_names[0])
-            self.print_selected_star()
-            self.set_go_button_enabled(True)
-        else:
-            self.print_message("No STARs found for {} airport".format(airport_icao))
+        try:
+            self.cifp = Cifp(self.xplm_wrapper, airport_icao, XPLMGetSystemPath())
+            if self.cifp.star_names:
+                XPSetWidgetDescriptor(self.star_tf, self.cifp.star_names[0])
+                self.print_selected_star()
+                self.set_go_button_enabled(True)
+            else:
+                self.print_message("No STARs found for {} airport".format(airport_icao))
+                self.set_go_button_enabled(False)
+        except Exception as e:
+            self.print_message(str(e))
             self.set_go_button_enabled(False)
 
     def search_airport(self, airport_icao):
