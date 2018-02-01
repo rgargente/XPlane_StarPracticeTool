@@ -40,3 +40,7 @@ def test_heading_and_speed_to_xyz_vector_west():
 
 def test_heading_and_speed_to_xyz_vector_nne():
     assert heading_and_speed_to_xyz_vector(60, 100) == [pytest.approx(86.6, 1), 0, pytest.approx(-50)]
+
+
+def test_heading_and_speed_to_xyz_vector_se():
+    assert heading_and_speed_to_xyz_vector(169, 100) == [pytest.approx(19.1, 1), 0, pytest.approx(98.2, 1)]

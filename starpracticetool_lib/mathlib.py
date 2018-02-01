@@ -35,28 +35,25 @@ def heading_and_speed_to_xyz_vector(heading, speed_ms):
 
 
 def hpr_to_quaternion(heading, pitch, roll):
-    heading = math.radians(heading)
-    pitch = math.radians(pitch)
-    roll = math.radians(roll)
-
-    cos1 = math.cos(roll / 2)
-    cos2 = math.cos(pitch / 2)
-    cos3 = math.cos(heading / 2)
-    sin1 = math.sin(roll / 2)
-    sin2 = math.sin(pitch / 2)
-    sin3 = math.sin(heading / 2)
-
-    q = []
-    q.append(cos1 * cos2 * cos3 + sin1 * sin2 * sin3)
-    q.append(sin1 * cos2 * cos3 - cos1 * sin2 * sin3)
-    q.append(cos1 * sin2 * cos3 + sin1 * cos2 * sin3)
-    q.append(cos1 * cos2 * sin3 - sin1 * sin2 * cos3)
+    """
+    Converts a heading, pitch and roll to a quaternion as explained here:
+    http://www.xsquawkbox.net/xpsdk/mediawiki/MovingThePlane#Orienting_the_Aircraft_in_Space
+    """
+    q = [None] * 4
+    heading = math.pi / 360 * heading
+    pitch = math.pi / 360 * pitch
+    roll = math.pi / 360 * roll
+    q[0] = math.cos(heading) * math.cos(pitch) * math.cos(roll) + math.sin(heading) * math.sin(pitch) * math.sin(roll)
+    q[1] = math.cos(heading) * math.cos(pitch) * math.sin(roll) - math.sin(heading) * math.sin(pitch) * math.cos(roll)
+    q[2] = math.cos(heading) * math.sin(pitch) * math.cos(roll) + math.sin(heading) * math.cos(pitch) * math.sin(roll)
+    q[3] = -math.cos(heading) * math.sin(pitch) * math.sin(roll) + math.sin(heading) * math.cos(pitch) * math.cos(roll)
     return q
 
 
 def knots_to_m_sec(kts):
     """Knots (kt) to meters/second (m/s)"""
     return kts * 0.514444
+
 
 def feet_to_meters(feet):
     return feet * 0.3048
