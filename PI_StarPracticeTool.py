@@ -383,8 +383,9 @@ class PythonInterface:
             XPLMSetDatavf(dr_q, q, 0, 4)
 
             # Set velocity
+            tas = mathlib.tas_to_ias(self.selected_speed, self.selected_altitude)
             vx, vy, vz = mathlib.heading_and_speed_to_xyz_vector(star.init_heading,
-                                                                 mathlib.knots_to_m_sec(self.selected_speed))
+                                                                 mathlib.knots_to_m_sec(tas))
             dr_vx = XPLMFindDataRef("sim/flightmodel/position/local_vx")
             dr_vy = XPLMFindDataRef("sim/flightmodel/position/local_vy")
             dr_vz = XPLMFindDataRef("sim/flightmodel/position/local_vz")

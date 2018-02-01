@@ -50,6 +50,11 @@ def hpr_to_quaternion(heading, pitch, roll):
     return q
 
 
+def tas_to_ias(ias, alt_ft):
+    """A very approximate way to calculate TAS from IAS, not taking temperature or pressure into account"""
+    return ias + 0.02 * ias * alt_ft / 1000
+
+
 def knots_to_m_sec(kts):
     """Knots (kt) to meters/second (m/s)"""
     return kts * 0.514444
