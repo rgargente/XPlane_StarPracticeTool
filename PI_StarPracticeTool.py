@@ -63,6 +63,8 @@ class PythonInterface:
 
         self.spt_window = None
 
+        self.fm_overriden = False
+
         self.debug_file = None
         self.is_debugging_to_file = False
 
@@ -351,31 +353,58 @@ class PythonInterface:
             self.set_go_button_enabled(False)
 
     def go(self):
-        self.save_prefs()
-
+        dr_override = XPLMFindDataRef("sim/operation/override/override_planepath")
+        override_values = [1]
         star = self.cifp.stars[self.selected_star_name]
-        x, y, z = XPLMWorldToLocal(star.init_lat, star.init_lon, mathlib.feet_to_meters(self.selected_altitude))
 
-        drx = XPLMFindDataRef("sim/flightmodel/position/local_x")
-        dry = XPLMFindDataRef("sim/flightmodel/position/local_y")
-        drz = XPLMFindDataRef("sim/flightmodel/position/local_z")
-        XPLMSetDatad(drx, x)
-        XPLMSetDatad(dry, y)
-        XPLMSetDatad(drz, z)
+        if not self.fm_overriden:
+            self.save_prefs()
 
-        # Set quaternion
-        q = mathlib.hpr_to_quaternion(star.init_heading, 0, 0)
-        dr_q = XPLMFindDataRef("sim/flightmodel/position/q")
-        XPLMSetDatavf(dr_q, q, 0, 4)
+            x, y, z = XPLMWorldToLocal(star.init_lat, star.init_lon, mathlib.feet_to_meters(self.selected_altitude))
+            drx = XPLMFindDataRef("sim/flightmodel/position/local_x")
+            dry = XPLMFindDataRef("sim/flightmodel/position/local_y")
+            drz = XPLMFindDataRef("sim/flightmodel/position/local_z")
+            XPLMSetDatad(drx, x)
+            XPLMSetDatad(dry, y)
+            XPLMSetDatad(drz, z)
 
-        x, y, z = mathlib.heading_and_speed_to_xyz_vector(star.init_heading,
-                                                          mathlib.knots_to_m_sec(self.selected_speed))
-        dr_vx = XPLMFindDataRef("sim/flightmodel/position/local_vx")
-        dr_vy = XPLMFindDataRef("sim/flightmodel/position/local_vy")
-        dr_vz = XPLMFindDataRef("sim/flightmodel/position/local_vz")
-        XPLMSetDataf(dr_vx, x)
-        XPLMSetDataf(dr_vy, y)
-        XPLMSetDataf(dr_vz, z)
+            # Stop the flight model
+            XPLMSetDatavi(dr_override, override_values, 0, 1)
+            self.fm_overriden = True
+            self.print_message("Set up your autopilot, gear, etc. and click GO again.")
+
+        else:
+            # All these values must be set after the "teleporting" to avoid unpredictable behaviour.
+            # There can be a significant delay loading the scenery, but the script won't wait for it.
+
+            # Set quaternion
+            q = mathlib.hpr_to_quaternion(star.init_heading, 0, 0)
+            dr_q = XPLMFindDataRef("sim/flightmodel/position/q")
+            XPLMSetDatavf(dr_q, q, 0, 4)
+
+            # Set velocity
+            vx, vy, vz = mathlib.heading_and_speed_to_xyz_vector(star.init_heading,
+                                                                 mathlib.knots_to_m_sec(self.selected_speed))
+            dr_vx = XPLMFindDataRef("sim/flightmodel/position/local_vx")
+            dr_vy = XPLMFindDataRef("sim/flightmodel/position/local_vy")
+            dr_vz = XPLMFindDataRef("sim/flightmodel/position/local_vz")
+            XPLMSetDataf(dr_vx, vx)
+            XPLMSetDataf(dr_vy, vy)
+            XPLMSetDataf(dr_vz, vz)
+
+            # Set rotation to 0
+            dr_p = XPLMFindDataRef("sim/flightmodel/position/P")
+            dr_q = XPLMFindDataRef("sim/flightmodel/position/Q")
+            dr_r = XPLMFindDataRef("sim/flightmodel/position/R")
+            XPLMSetDataf(dr_p, 0)
+            XPLMSetDataf(dr_q, 0)
+            XPLMSetDataf(dr_r, 0)
+
+            # Resume the flight model
+            override_values = [0]
+            XPLMSetDatavi(dr_override, override_values, 0, 1)
+            self.fm_overriden = False
+            self.print_selected_star()
 
 
 class Preferences:
