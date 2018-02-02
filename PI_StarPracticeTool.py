@@ -17,8 +17,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-VERSION = "0.9.0"
-
 import os
 import json
 from datetime import datetime
@@ -37,6 +35,7 @@ from XPStandardWidgets import *
 from XPWidgetDefs import *
 from XPWidgets import *
 
+from starpracticetool_lib.version import VERSION
 import starpracticetool_lib.mathlib as mathlib
 from starpracticetool_lib.cifplib import Cifp
 from starpracticetool_lib.xplm_wrapper import XplmWrapper
