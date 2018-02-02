@@ -1,5 +1,5 @@
 """
-This script creates a release package for the plugin
+This script creates a release package for the plugin and updates the version.txt file
 """
 
 import os
@@ -17,3 +17,6 @@ if __name__ == '__main__':
     zipf.write(os.path.join('starpracticetool_lib', 'version.py'))
     zipf.write(os.path.join('starpracticetool_lib', 'xplm_wrapper.py'))
     zipf.close()
+
+    with open(os.path.join('starpracticetool_lib', 'version.txt'), 'w') as verf:
+        verf.write(VERSION)
