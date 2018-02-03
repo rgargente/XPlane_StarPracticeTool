@@ -35,7 +35,7 @@ from XPStandardWidgets import *
 from XPWidgetDefs import *
 from XPWidgets import *
 
-from starpracticetool_lib.version import VERSION
+import starpracticetool_lib.version as version
 import starpracticetool_lib.mathlib as mathlib
 from starpracticetool_lib.cifplib import Cifp
 from starpracticetool_lib.xplm_wrapper import XplmWrapper
@@ -53,7 +53,7 @@ WINDOW_H = 190
 # noinspection PyUnresolvedReferences
 class PythonInterface:
     def XPluginStart(self):
-        self.Name = "STAR Practice Tool v" + VERSION
+        self.Name = "STAR Practice Tool v" + version.VERSION
         self.Sig = "rgargente.spt"
         self.Desc = "Set up your plane to practice IFR STAR arrivals procedures"
 
@@ -219,10 +219,17 @@ class PythonInterface:
         self.go_btn = XPCreateWidget(left_col_1, top_row, right_window - padding, top_row - row_h,
                                      1, "GO!", 0, self.spt_window, xpWidgetClass_Button)
 
-        # Translucent window
+        # Update caption
         top_row -= row_h
+        self.update_caption = None
+        if not version.is_up_to_date():
+            self.update_caption = XPCreateWidget(left_col_1, top_row, right_col_2, top_row - row_h + 2,
+                                                 1, "NEW PLUGIN VERSION AVAILABLE!", 0, self.spt_window,
+                                                 xpWidgetClass_Caption)
+
+        # Translucent window
         x_pos = left_window + 210
-        self.translucent_button = XPCreateWidget(x_pos, top_row, x_pos + 5, top_row - row_h,
+        self.translucent_button = XPCreateWidget(x_pos, top_row, x_pos + 15, top_row - row_h,
                                                  1, "", 0, self.spt_window, xpWidgetClass_Button)
         self.translucent_caption = XPCreateWidget(x_pos + 15, top_row, right_window, top_row - row_h + 2,
                                                   1, "Translucent window", 0, self.spt_window, xpWidgetClass_Caption)
@@ -252,6 +259,8 @@ class PythonInterface:
         XPSetWidgetProperty(self.speed_units_caption, xpProperty_CaptionLit, self.preferences.is_translucent)
         XPSetWidgetProperty(self.message_caption, xpProperty_CaptionLit, self.preferences.is_translucent)
         XPSetWidgetProperty(self.translucent_caption, xpProperty_CaptionLit, self.preferences.is_translucent)
+        if self.update_caption:
+            XPSetWidgetProperty(self.update_caption, xpProperty_CaptionLit, self.preferences.is_translucent)
 
     @property
     def selected_airport_icao(self):
