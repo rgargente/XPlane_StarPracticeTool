@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 X Plane STAR Practice Tool Python plugin
 Copyright (C) 2018 Rafael Garcia Argente
@@ -191,6 +194,9 @@ class PythonInterface:
         self.star_next_btn = XPCreateWidget(left_col_3, top_row, right_col_3, top_row - row_h,
                                             1, "Next", 0, self.spt_window, xpWidgetClass_Button)
 
+        self.init_heading_caption = XPCreateWidget(left_half_window, top_row, left_half_window + 50, top_row - row_h,
+                                                   1, "", 0, self.spt_window, xpWidgetClass_Caption)
+
         # Altitude and Speed
         top_row -= row_h
         self.altitude_caption = XPCreateWidget(left_col_1, top_row, right_col_1, top_row - row_h,
@@ -253,6 +259,7 @@ class PythonInterface:
             XPSetWidgetProperty(self.spt_window, xpProperty_MainWindowType, xpMainWindowStyle_MainWindow)
         XPSetWidgetProperty(self.icao_caption, xpProperty_CaptionLit, self.preferences.is_translucent)
         XPSetWidgetProperty(self.star_caption, xpProperty_CaptionLit, self.preferences.is_translucent)
+        XPSetWidgetProperty(self.init_heading_caption, xpProperty_CaptionLit, self.preferences.is_translucent)
         XPSetWidgetProperty(self.altitude_caption, xpProperty_CaptionLit, self.preferences.is_translucent)
         XPSetWidgetProperty(self.altitude_units_caption, xpProperty_CaptionLit, self.preferences.is_translucent)
         XPSetWidgetProperty(self.speed_caption, xpProperty_CaptionLit, self.preferences.is_translucent)
@@ -273,6 +280,10 @@ class PythonInterface:
         out_star_name = []
         XPGetWidgetDescriptor(self.star_tf, out_star_name, 20)
         return out_star_name[0]
+
+    @property
+    def selected_star(self):
+        return self.cifp.stars[self.selected_star_name]
 
     @property
     def selected_altitude(self):
@@ -330,6 +341,10 @@ class PythonInterface:
         XPSetWidgetDescriptor(self.message_caption, text)
 
     def print_selected_star(self):
+        heading = self.selected_star.init_heading
+        if heading < 0:
+            heading += 360
+        XPSetWidgetDescriptor(self.init_heading_caption, "Initial heading {:.0f}°".format(heading))
         self.print_message("{} STAR {} selected".format(self.selected_airport_icao, self.selected_star_name))
 
     def init_data(self):
@@ -363,7 +378,7 @@ class PythonInterface:
     def go(self):
         dr_override = XPLMFindDataRef("sim/operation/override/override_planepath")
         override_values = [1]
-        star = self.cifp.stars[self.selected_star_name]
+        star = self.selected_star
 
         if not self.fm_overriden:
             self.save_prefs()
