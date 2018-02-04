@@ -10,7 +10,15 @@ The main features are:
 - Smooth transition between different states. Practice flights start with a reasonable stable aircraft.
 - Builtin notification when a new version is released.
 
+## Installation
+
 This plugin is implemented with Python and therefore requires the PythonInterface plugin for X Plane. You can get from here: http://www.xpluginsdk.org/python_interface.htm
+
+Copy the contents of the zip package inside XPlane/Resources/plugins/PythonScripts
+
+After that you will find a new menu option inside X Plane, in the plugins menu.
+
+## The other stuff
 
 Suggestions, constructive criticism and feature requests are always welcome. Don't hesitate to ask for help if it's not working as intended.
 
