@@ -18,6 +18,9 @@ Copy the contents of the zip package inside XPlane/Resources/plugins/PythonScrip
 
 After that you will find a new menu option inside X Plane, in the plugins menu.
 
+## Tutorials!
+https://www.youtube.com/playlist?list=PLhmuePX_RzqiiNdoGu19WTffGLqVRXSZW
+
 ## The other stuff
 
 Suggestions, constructive criticism and feature requests are always welcome. Don't hesitate to ask for help if it's not working as intended.
