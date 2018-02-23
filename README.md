@@ -6,13 +6,13 @@ The main features are:
 - It works both with default X Plane nav data or with updated cycles. It automatically reads the newest one so that  it remains consistent with the simulator.
 - It doesn't need any external application or data. If you fly an aircraft with an FMC this is all you need to set up your STAR.
 - You can easily practice several different STARS, or the same one multiple times, without long loading times between flights.
-- Let's you choose your starting altitude and speed.
+- Lets you choose your starting altitude and speed.
 - Smooth transition between different states. Practice flights start with a reasonable stable aircraft.
 - Builtin notification when a new version is released.
 
 ## Installation
 
-This plugin is implemented with Python and therefore requires the PythonInterface plugin for X Plane. You can get from here: http://www.xpluginsdk.org/python_interface.htm
+This plugin is implemented with Python and therefore requires the PythonInterface plugin for X Plane. You can get it from here: http://www.xpluginsdk.org/python_interface.htm
 
 Copy the contents of the zip package inside XPlane/Resources/plugins/PythonScripts
 
