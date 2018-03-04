@@ -304,6 +304,14 @@ class PythonInterface:
         if not enabled:
             XPSetWidgetDescriptor(self.star_tf, "")
 
+    def check_numbers(self):
+        """:returns: False if altitude or speed are not correct ints"""
+        try:
+            if self.selected_altitude and self.selected_speed:
+                return True
+        except:
+            return False
+
     def window_handler(self, message, widget, param1, param2):
         # Close button will only hide window
         if message == xpMessage_CloseButtonPushed:
@@ -325,7 +333,10 @@ class PythonInterface:
                 XPSetWidgetDescriptor(self.star_tf, self.cifp.get_next_star(self.selected_star_name))
                 self.print_selected_star()
             elif param1 == self.go_btn:
-                self.go()
+                if self.check_numbers():
+                    self.go()
+                else:
+                    self.print_message("Please check those numbers!")
                 return 1
 
         elif message == xpMsg_ButtonStateChanged:
