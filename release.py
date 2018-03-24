@@ -16,6 +16,10 @@ if __name__ == '__main__':
     zipf.write(os.path.join('starpracticetool_lib', 'mathlib.py'))
     zipf.write(os.path.join('starpracticetool_lib', 'version.py'))
     zipf.write(os.path.join('starpracticetool_lib', 'xplm_wrapper.py'))
+    zipf.write(os.path.join('starpracticetool_lib', 'navparser.py'))
+    
+    # TODO Add new files
+
     zipf.close()
 
     with open(os.path.join('starpracticetool_lib', 'version.txt'), 'w') as verf:
