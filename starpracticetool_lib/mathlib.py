@@ -20,6 +20,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import math
 
 
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
+
 def heading_and_speed_to_xyz_vector(heading, speed_ms):
     """
     Converts a heading and speed to a velocity vector in XPlane's Open GL coordinates.
@@ -62,3 +70,25 @@ def knots_to_m_sec(kts):
 
 def feet_to_meters(feet):
     return feet * 0.3048
+
+
+def get_distance_between_latlon(origin, destination):
+    """
+    See https://stackoverflow.com/questions/19412462/getting-distance-between-two-points-based-on-latitude-longitude
+    Calculate the Haversine distance.
+
+    :param origin: lat, lon tuple
+    :param destination: lat, lon tuple
+    :returns: distance in km
+    """
+    lat1, lon1 = origin
+    lat2, lon2 = destination
+    radius = 6371  # km
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = (math.sin(dlat / 2) * math.sin(dlat / 2) +
+         math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) *
+         math.sin(dlon / 2) * math.sin(dlon / 2))
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    d = radius * c
+    return d
