@@ -17,4 +17,7 @@ class FixParser:
 
 
     def get_coord(self, fixname):
-        return self.fixes[fixname]
+        try:
+            return self.fixes[fixname]
+        except:
+            return None
