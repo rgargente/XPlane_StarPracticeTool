@@ -9,7 +9,7 @@ def navparser():
 
 
 def test_stations_count(navparser):
-    assert 4 == len(navparser.stations)
+    assert 6 == len(navparser.stations)
 
 
 def test_station_not_duplicated(navparser):
@@ -24,3 +24,10 @@ def test_station_by_name_several_results(navparser):
     assert 2 == len(latlons)
     assert (50.955250000, -1.345055556) in latlons
     assert (37.686625000, 26.907077778) in latlons
+
+
+def test_name_beginning_with_is_ignored(navparser):
+    "If I look for FY, I shouldn't get FYM"
+    # First make sure FYM is actually there
+    assert [(29.397500000, 30.393055556)] == navparser.get_station_latlon_by_name('FYM')
+    assert [(17.930833333, 19.134166667)] == navparser.get_station_latlon_by_name('FY')
