@@ -17,71 +17,33 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os
-
 import pytest
 
-from starpracticetool_lib.cifplib import _get_file_path, Cifp
+from starpracticetool_lib.cifplib import Cifp
 from starpracticetool_lib.test.mock_xplm_wrapper import MockXplmWrapper
 
 
 @pytest.fixture()
-def xplane_path():
-    return 'xplanepath/'
-
-
-@pytest.fixture()
-def airport_icao():
-    return 'LEBB'
-
-
-@pytest.fixture()
-def custom_file_path(xplane_path):
-    return os.path.join(xplane_path, "Custom Data", "CIFP", "LEBB.dat")
-
-
-@pytest.fixture()
-def default_file_path(xplane_path):
-    return os.path.join(xplane_path, "Resources", "default data", "CIFP", "LEBB.dat")
-
-
-def mock_file_exists(monkeypatch, custom_file_path, default_file_path, custom_exists):
-    def mock_exists(path):
-        if path == custom_file_path:
-            return custom_exists
-        if path == default_file_path:
-            return True
-        return False
-
-    monkeypatch.setattr(os.path, 'exists', mock_exists)
-
-
-def test_custom_data_folder_is_prioritised(monkeypatch, xplane_path, custom_file_path, default_file_path, airport_icao):
-    mock_file_exists(monkeypatch, custom_file_path, default_file_path, True)
-    assert _get_file_path(xplane_path, airport_icao) == custom_file_path
-
-
-def test_default_data_is_used(monkeypatch, xplane_path, custom_file_path, default_file_path, airport_icao):
-    mock_file_exists(monkeypatch, custom_file_path, default_file_path, False)
-    assert _get_file_path(xplane_path, airport_icao) == default_file_path
-
-
-@pytest.fixture()
-def cifp():
+def lebb():
     return Cifp(MockXplmWrapper(), 'LEBB', file_path='LEBB.dat')
 
 
-def test_there_are_437_lines(cifp):
-    assert len(cifp.raw_lines) == 437
+@pytest.fixture()
+def egll():
+    return Cifp(MockXplmWrapper(), 'EGLL', file_path='EGLL.dat')
 
 
-def test_get_star_names(cifp):
-    assert cifp.star_names == ['CEGA1K', 'CEGA1Q', 'CEGA2T', 'DGO1L', 'DGO1Q', 'DGO1T', 'DGO1Z', 'DGO2X', 'DOSU1T',
+def test_there_are_437_lines(lebb):
+    assert len(lebb.raw_lines) == 437
+
+
+def test_get_star_names(lebb):
+    assert lebb.star_names == ['CEGA1K', 'CEGA1Q', 'CEGA2T', 'DGO1L', 'DGO1Q', 'DGO1T', 'DGO1Z', 'DGO2X', 'DOSU1T',
                                'DOSU1Z', 'DOSU2K', 'DOSU2Q', 'MAPA1K', 'MAPA1Q', 'MAPA1T', 'MAPA1Z', 'SNR2K',
                                'SNR2Q', 'SNR2T', 'SNR2Z']
 
 
-def test_star_beginning_with_two_named_waypoints(cifp):
+def test_star_beginning_with_two_named_waypoints(lebb):
     # DGO2X
     # STAR:010,2,DGO2X,RW12,DGO,LE,D, ,V   , ,   ,IF, , , , , ,      ,    ,    ,    ,    , ,     ,     ,     , ,   ,    ,   , , , , , , , , ;
     # STAR:020,2,DGO2X,RW12,VRA,LE,D, ,V   , ,   ,TF, , , , , ,      ,    ,    ,    ,    , ,     ,     ,     , ,   ,    ,   , , , , , , , , ;
@@ -90,14 +52,14 @@ def test_star_beginning_with_two_named_waypoints(cifp):
     # STAR:045,2,DGO2X,RW12,D291O,LE,P,C,E   ,R,   ,AF, ,BLV,LE,D, ,      ,2910,0150,2790,    , ,     ,     ,     , ,   ,    ,   , , , , , , , , ;
     # STAR:050,2,DGO2X,RW12,KALDO,LE,P,C,E C ,R,   ,AF, ,BLV,LE,D, ,      ,3040,0150,2910,    , ,     ,     ,     , ,   ,    ,   , , , , , , , , ;
     # STAR:060,2,DGO2X,RW12,ROSTO,LE,P,C,EECH, ,   ,TF, , , , , ,      ,    ,    ,    ,    , ,     ,     ,     , ,   ,    ,   , , , , , , , , ;
-    dgo2x = cifp.stars['DGO2X']
+    dgo2x = lebb.stars['DGO2X']
     assert dgo2x.waypoints == ['DGO', 'VRA', 'D251O', 'SOMAN', 'D291O', 'KALDO', 'ROSTO']
     assert dgo2x.init_lat == 42.453305556
     assert dgo2x.init_lon == -2.880694444
     assert dgo2x.init_heading == pytest.approx(003, 1)
 
 
-def test_star_with_course_intercept_as_second_waypoint(cifp):
+def test_star_with_course_intercept_as_second_waypoint(lebb):
     # MAPA1K
     # STAR:010, 2, MAPA1K, RW30, MAPAX, LE, E, A, E,, , IF,, , , , , , , , , , , , , , , , , , , , , , , , , ;
     # STAR:020, 2, MAPA1K, RW30,, , , , , , , CI,, , , , , , , , 1690,, , , , , , , , , , , , , , , , ;
@@ -105,26 +67,38 @@ def test_star_with_course_intercept_as_second_waypoint(cifp):
     # STAR:040, 2, MAPA1K, RW30, D092V, LE, P, C, E, R,, AF,, BLV, LE, D,, , 0 920, 0220, 0670,, , , , , , , , , , , , , , , , ;
     # STAR:050, 2, MAPA1K, RW30, D111V, LE, P, C, E, R,, AF,, BLV, LE, D,, , 1110, 0220, 0, 920,, , , , , , , , , , , , , , , , ;
     # STAR:060, 2, MAPA1K, RW30, PAKKI, LE, P, C, EEC,, , TF,, , , , , , , , , , , , , , , , , , , , , , , , , ;
-    mapa1k = cifp.stars['MAPA1K']
+    mapa1k = lebb.stars['MAPA1K']
     assert mapa1k.waypoints == ['MAPAX', 'INTC', 'D067V', 'D092V', 'D111V', 'PAKKI']
     assert mapa1k.init_lat == 43.683750000
     assert mapa1k.init_lon == -3.044083333
     assert mapa1k.init_heading == pytest.approx(169, 1)
 
 
-def test_get_prev_star(cifp):
-    assert cifp.get_prev_star('CEGA1K') == 'SNR2Z'
-    assert cifp.get_prev_star('CEGA1Q') == 'CEGA1K'
-    assert cifp.get_prev_star('SNR2Z') == 'SNR2T'
+def test_get_prev_star(lebb):
+    assert lebb.get_prev_star('CEGA1K') == 'SNR2Z'
+    assert lebb.get_prev_star('CEGA1Q') == 'CEGA1K'
+    assert lebb.get_prev_star('SNR2Z') == 'SNR2T'
 
 
-def test_get_next_star(cifp):
-    assert cifp.get_next_star('CEGA1K') == 'CEGA1Q'
-    assert cifp.get_next_star('CEGA1Q') == 'CEGA2T'
-    assert cifp.get_next_star('SNR2Z') == 'CEGA1K'
+def test_get_next_star(lebb):
+    assert lebb.get_next_star('CEGA1K') == 'CEGA1Q'
+    assert lebb.get_next_star('CEGA1Q') == 'CEGA2T'
+    assert lebb.get_next_star('SNR2Z') == 'CEGA1K'
 
 
 def test_non_existing_airport():
     with pytest.raises(Exception) as e:
         Cifp(MockXplmWrapper(), 'garbage')
     assert "Airport not found" == e.value.message
+
+
+def test_matchingname_procedure(egll):
+    """ There is a limitation in the XP API. If you ask for example for a navaid called SAM it will return all
+    the navaids which names start with SAM without having the option to look for exactly that name.
+    In this case it will return SAM27 and it's not possible to get SAM.
+    This test should verify this is not a problem anymore. """
+    tomo2c = egll.stars['TOMO2C']
+    assert tomo2c.waypoints == ['SAM', 'HAZEL', 'FIMLI', 'TOMMO']
+    assert tomo2c.init_lat == 50.95527778
+    assert tomo2c.init_lon == 1.345
+    assert tomo2c.init_heading == pytest.approx(78, 1)

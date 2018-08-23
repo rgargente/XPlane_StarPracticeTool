@@ -22,9 +22,12 @@ class MockXplmWrapper:
     def get_airport_lat_lon(self, id, airport_lat, airport_lon):
         if id == 'LEBB':
             return 43.304305556, -2.922277778
+        elif id == 'EGLL':
+            return 51.475, 0.46138889
         else:
             return None, None
 
+    #TODO Still needed?
     def get_waypoint_lat_lon(self, id, airport_lat, airport_lon):
         if id == 'DGO':
             return 42.453305556, -2.880694444
