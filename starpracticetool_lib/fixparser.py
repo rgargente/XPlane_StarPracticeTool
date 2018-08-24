@@ -1,11 +1,14 @@
 import re
 
 from starpracticetool_lib.mathlib import is_number
+from starpracticetool_lib.waypointparser import WaypointParser, Waypoint
 
 
-class FixParser:
+class FixParser(WaypointParser):
+    """A parser for earth_fix.dat files"""
+
     def __init__(self, fix_filepath):
-        self.fixes = {}
+        WaypointParser.__init__(self)
 
         with open(fix_filepath) as f:
             for l in f:
@@ -13,11 +16,4 @@ class FixParser:
                 parts = l.split(' ', 5)
                 if len(parts) == 5 \
                         and is_number(parts[0]) and is_number(parts[1]):
-                    self.fixes[parts[2]] = (float(parts[0]), float(parts[1]))
-
-
-    def get_coord(self, fixname):
-        try:
-            return self.fixes[fixname]
-        except:
-            return None
+                    self.waypoints.add(Waypoint(float(parts[0]), float(parts[1]), parts[2]))
