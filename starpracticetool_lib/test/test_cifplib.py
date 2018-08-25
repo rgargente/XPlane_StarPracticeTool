@@ -20,17 +20,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import pytest
 
 from starpracticetool_lib.cifplib import Cifp
+from starpracticetool_lib.fixparser import FixParser
+from starpracticetool_lib.navparser import NavParser
 from starpracticetool_lib.test.mock_xplm_wrapper import MockXplmWrapper
+from starpracticetool_lib.waypointsreader import WaypointsReader
 
 
 @pytest.fixture()
 def lebb():
-    return Cifp(MockXplmWrapper(), 'LEBB', file_path='LEBB.dat')
+    waypoints_reader = WaypointsReader(None, FixParser('testdata/lebb/earth_fix.dat'),
+                                       NavParser('testdata/lebb/earth_nav.dat'))
+    return Cifp(MockXplmWrapper(), 'LEBB', file_path='testdata/lebb/LEBB.dat', waypoints_reader=waypoints_reader)
 
 
 @pytest.fixture()
 def egll():
-    return Cifp(MockXplmWrapper(), 'EGLL', file_path='EGLL.dat')
+    waypoints_reader = WaypointsReader(None, FixParser('testdata/egll/earth_fix.dat'),
+                                       NavParser('testdata/egll/earth_nav.dat'))
+    return Cifp(MockXplmWrapper(), 'EGLL', file_path='testdata/egll/EGLL.dat', waypoints_reader=waypoints_reader)
 
 
 def test_there_are_437_lines(lebb):
@@ -54,8 +61,8 @@ def test_star_beginning_with_two_named_waypoints(lebb):
     # STAR:060,2,DGO2X,RW12,ROSTO,LE,P,C,EECH, ,   ,TF, , , , , ,      ,    ,    ,    ,    , ,     ,     ,     , ,   ,    ,   , , , , , , , , ;
     dgo2x = lebb.stars['DGO2X']
     assert dgo2x.waypoints == ['DGO', 'VRA', 'D251O', 'SOMAN', 'D291O', 'KALDO', 'ROSTO']
-    assert dgo2x.init_lat == 42.453305556
-    assert dgo2x.init_lon == -2.880694444
+    assert dgo2x.init_lat == 42.453416667
+    assert dgo2x.init_lon == -2.880583333
     assert dgo2x.init_heading == pytest.approx(003, 1)
 
 
@@ -99,6 +106,6 @@ def test_matchingname_procedure(egll):
     This test should verify this is not a problem anymore. """
     tomo2c = egll.stars['TOMO2C']
     assert tomo2c.waypoints == ['SAM', 'HAZEL', 'FIMLI', 'TOMMO']
-    assert tomo2c.init_lat == 50.95527778
-    assert tomo2c.init_lon == 1.345
+    assert tomo2c.init_lat == 50.955250000
+    assert tomo2c.init_lon == -1.345055556
     assert tomo2c.init_heading == pytest.approx(78, 1)

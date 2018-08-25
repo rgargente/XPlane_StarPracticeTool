@@ -4,7 +4,7 @@ from starpracticetool_lib.fixparser import FixParser
 from starpracticetool_lib.navparser import NavParser
 
 
-class Waypoints:
+class WaypointsReader:
     """A reader class for waypoints coming from both earth_fix.dat and earth_nav.dat files"""
 
     def __init__(self, xplane_path, fixparser=None, navparser=None):
@@ -22,4 +22,7 @@ class Waypoints:
     def get_latlon(self, waypoint_name, airport_lat, airport_lon):
         waypoints = self._navparser.get_latlon(waypoint_name) + \
                     self._fixparser.get_latlon(waypoint_name)
-        return min(waypoints, key=lambda wp: mathlib.get_distance_between_latlon((airport_lat, airport_lon), wp))
+        if waypoints:
+            return min(waypoints, key=lambda wp: mathlib.get_distance_between_latlon((airport_lat, airport_lon), wp))
+        else:
+            return None, None

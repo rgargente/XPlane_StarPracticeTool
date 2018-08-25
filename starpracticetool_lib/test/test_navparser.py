@@ -1,13 +1,3 @@
-import pytest
-
-from starpracticetool_lib.navparser import NavParser
-
-
-@pytest.fixture
-def navparser():
-    return NavParser('earth_nav.dat')
-
-
 def test_stations_count(navparser):
     assert 6 == len(navparser.waypoints)
 

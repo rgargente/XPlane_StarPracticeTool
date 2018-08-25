@@ -1,13 +1,3 @@
-import pytest
-
-from starpracticetool_lib.fixparser import FixParser
-
-
-@pytest.fixture()
-def fixparser():
-    return FixParser('earth_fix.dat')
-
-
 def test_count(fixparser):
     assert 9 == len(fixparser.waypoints)
 

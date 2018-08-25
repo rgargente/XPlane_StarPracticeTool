@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 from starpracticetool_lib import paths
+from starpracticetool_lib.waypointsreader import WaypointsReader
 
 """
 A library to handle CIFP data in X-Plane
@@ -41,14 +42,20 @@ def get_heading_between_two_lat_lon(lat1, lon1, lat2, lon2):
 class Cifp:
     APT_NOT_FOUND_EXC = "Airport not found"
 
-    def __init__(self, xplm_wrapper, airport_icao, xplane_path=None, file_path=None):
+    def __init__(self, xplm_wrapper, airport_icao, xplane_path=None, file_path=None, waypoints_reader=None):
         """
-        Either (xplane_path and airport_icao) or file_path should be passed.
+        Either (xplane_path and airport_icao) or (file_path and waypoints_reader) should be passed.
+        The second option should be used just for testing.
         :param file_path: If None, xplane_path and airport_icao are used to find the right path. Otherwise they are ignored and the passed path is used.
         """
         self.raw_lines = []
         self.star_names = []
         self.stars = {}
+
+        if waypoints_reader:
+            self.waypoints_reader = waypoints_reader
+        else:
+            self.waypoints_reader = WaypointsReader(xplane_path)
 
         airport_lat, airport_lon = xplm_wrapper.get_airport_lat_lon(airport_icao, None, None)
         if airport_lat is None:
@@ -70,7 +77,7 @@ class Cifp:
                 star_name = line_items[2]
                 if star_name not in self.star_names:  # new STAR
                     self.star_names.append(star_name)
-                    star = Star(xplm_wrapper, star_name, airport_lat, airport_lon)
+                    star = Star(self.waypoints_reader, star_name, airport_lat, airport_lon)
                     self.stars[star_name] = star
                 else:  # update star
                     star = self.stars[star_name]
@@ -95,7 +102,7 @@ class Star:
     INDEX_COURSE_INTERCEPT = 11
     INDEX_CI_HEADING = 20
 
-    def __init__(self, xplm_wrapper, name, airport_lat, airport_lon):
+    def __init__(self, waypoints_reader, name, airport_lat, airport_lon):
         self.name = name
         self.airport_lat = airport_lat
         self.airport_lon = airport_lon
@@ -104,7 +111,7 @@ class Star:
         self.init_lon = None
         self._init_heading = None
 
-        self._xplm_wrapper = xplm_wrapper
+        self._waypoints_reader = waypoints_reader
 
     def _parse_raw_line(self, line_items):
         if line_items[self.INDEX_COURSE_INTERCEPT] == 'CI':
@@ -114,15 +121,13 @@ class Star:
             waypoint_id = line_items[self.INDEX_WAYPOINT]
             self.waypoints.append(waypoint_id)
             if self.init_lat is None:
-                # todo change this
-                self.init_lat, self.init_lon = self._xplm_wrapper.get_waypoint_lat_lon(waypoint_id, self.airport_lat,
+                self.init_lat, self.init_lon = self._waypoints_reader.get_latlon(waypoint_id, self.airport_lat,
                                                                                        self.airport_lon)
 
     @property
     def init_heading(self):
         if self._init_heading is None:
-            # todo change this
-            lat2, lon2 = self._xplm_wrapper.get_waypoint_lat_lon(self.waypoints[1], self.airport_lat, self.airport_lon)
+            lat2, lon2 = self._waypoints_reader.get_latlon(self.waypoints[1], self.airport_lat, self.airport_lon)
 
             self._init_heading = get_heading_between_two_lat_lon(self.init_lat, self.init_lon,
                                                                  lat2, lon2)
