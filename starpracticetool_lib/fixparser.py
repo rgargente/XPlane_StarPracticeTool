@@ -13,7 +13,7 @@ class FixParser(WaypointParser):
         with open(fix_filepath) as f:
             for l in f:
                 l = re.sub(' +', ' ', l.strip())  # Remove multiple spaces
-                parts = l.split(' ', 5)
-                if len(parts) == 5 \
+                parts = l.split(' ')
+                if len(parts) == 5 or len(parts) == 6 \
                         and is_number(parts[0]) and is_number(parts[1]):
                     self.waypoints.add(Waypoint(float(parts[0]), float(parts[1]), parts[2]))
